@@ -64,9 +64,13 @@ Hasil verifikasi:
 
 ---
 
-## 🚀 Menjalankan Aplikasi Secara Lokal
+## 🚀 Menjalankan Aplikasi & Pengujian
 
-Untuk membuka dan menguji aplikasi di browser:
+### 1. Akses Live Deployment (Vercel & GitHub)
+- **Link Repository GitHub:** [https://github.com/Aileen1499/smart-grocery-tracker](https://github.com/Aileen1499/smart-grocery-tracker)
+- **Link Live Web Application:** [https://smart-grocery-tracker.vercel.app](https://smart-grocery-tracker.vercel.app)
+
+### 2. Menjalankan Secara Lokal
 1. Buka langsung file `index.html` di browser Google Chrome, atau
 2. Jalankan local web server (opsional):
    ```powershell
@@ -74,7 +78,7 @@ Untuk membuka dan menguji aplikasi di browser:
    ```
    Lalu buka URL yang muncul (misalnya `http://localhost:3000`) pada smartphone atau browser PC.
 
-Untuk menguji simulasi smartphone di Google Chrome DevTools:
-- Tekan `F12` > klik ikon **Toggle Device Toolbar** (`Ctrl + Shift + M`).
-- Pilih preset **iPhone SE** (lebar 375px).
-- Klik tombol **"⭐ Muat Skenario Uji DT2 Kasus Rian"** di keranjang untuk mengisi otomatis data barang belanjaan uji.
+### 3. Simulasi Mobile Smartphone (DevTools)
+- Buka browser Chrome, tekan `F12` > klik ikon **Toggle Device Toolbar** (`Ctrl + Shift + M`).
+- Pilih preset **iPhone SE** (lebar layar 375px × 667px).
+- Verifikasi seluruh elemen responsif, bebas horizontal scroll overflow, tombol jempol berukuran minimal 44×44px, dan keyboard numerik (`inputmode="numeric"`) aktif saat input harga atau kuantitas.
