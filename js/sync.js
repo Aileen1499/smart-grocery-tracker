@@ -312,7 +312,6 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
 
     if (!db || initError) return true;
 
-    const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
     await setDoc(docRef, payload, { merge: true });
     return true;
   } catch (err) {
