@@ -29,3 +29,4 @@ try {
 }
 
 export { app, db, initError };
+
