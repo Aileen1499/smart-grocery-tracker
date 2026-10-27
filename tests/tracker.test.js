@@ -7,7 +7,9 @@ import {
   calculateSubtotal,
   calculateGrandTotal,
   formatRupiah,
-  parseRupiah
+  parseRupiah,
+  formatNumberWithCommas,
+  parsePriceInput
 } from '../js/calculator.js';
 
 import {
@@ -267,6 +269,19 @@ describe('E. UJI FUNGSI VALIDASI INPUT & PERSISTENSI PENYIMPANAN', () => {
     assert.equal(formatRupiah(74000), 'Rp 74.000');
     assert.equal(formatRupiah(129000), 'Rp 129.000');
     assert.equal(parseRupiah('Rp 74.000'), 74000);
-    assert.equal(parseRupiah('-Rp 15.000'), 15000); // Strip non-numeric
+  });
+
+  it('Uji 5.5: Format koma ribuan (74,000) mempermudah penghitungan nol dan deteksi minus', () => {
+    assert.equal(formatNumberWithCommas('74000'), '74,000');
+    assert.equal(formatNumberWithCommas('100000'), '100,000');
+    assert.equal(formatNumberWithCommas('-15000'), '-15,000');
+    assert.equal(formatNumberWithCommas(''), '');
+
+    assert.equal(parsePriceInput('74,000'), 74000);
+    assert.equal(parsePriceInput('100,000'), 100000);
+    assert.equal(parsePriceInput('-15000'), -15000);
+    assert.equal(parsePriceInput('-Rp 15.000'), -15000);
+    assert.equal(parsePriceInput('Rp 74.000'), 74000);
+    assert.equal(parsePriceInput(''), 0);
   });
 });

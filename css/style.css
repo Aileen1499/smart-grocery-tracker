@@ -534,6 +534,29 @@ body {
   font-size: 16px;
 }
 
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
+}
+
+.field-helper-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  font-weight: 600;
+  min-height: 16px;
+  transition: color 0.15s ease;
+}
+
+.field-helper-hint.hint-highlight {
+  color: #0f766e;
+}
+
+.field-helper-hint.hint-error {
+  color: #ef4444;
+}
+
 /* Live Preview Kalkulasi & Fluktuasi */
 .form-preview-box {
   background-color: var(--neutral-light);

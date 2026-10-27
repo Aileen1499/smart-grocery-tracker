@@ -154,6 +154,43 @@ export function formatRupiah(amount, includePrefix = true) {
 }
 
 /**
+ * Format string angka dengan pemisah ribuan berupa koma (,) agar mudah menghitung digit nol
+ * Contoh: "74000" -> "74,000"
+ *
+ * @param {string|number} rawStr
+ * @returns {string}
+ */
+export function formatNumberWithCommas(rawStr) {
+  if (rawStr === null || rawStr === undefined || rawStr === '') return '';
+  const str = String(rawStr).trim();
+  const isNegative = str.startsWith('-');
+  const digitsOnly = str.replace(/[^0-9]/g, '');
+  if (!digitsOnly) return isNegative ? '-' : '';
+  const num = parseInt(digitsOnly, 10);
+  if (isNaN(num)) return '';
+  const formatted = num.toLocaleString('en-US'); // Pemisah ribuan menggunakan koma (74,000)
+  return isNegative ? `-${formatted}` : formatted;
+}
+
+/**
+ * Parsing string input harga termasuk deteksi nilai negatif
+ * Mendukung format: "74,000", "74.000", "-15000", "-Rp 15.000", "Rp 74.000"
+ *
+ * @param {string|number} input
+ * @returns {number}
+ */
+export function parsePriceInput(input) {
+  if (typeof input === 'number') return isNaN(input) ? 0 : input;
+  if (!input) return 0;
+  const str = String(input).trim();
+  const isNegative = str.startsWith('-') || str.includes('-');
+  const cleaned = str.replace(/[^0-9]/g, '');
+  if (!cleaned) return 0;
+  const num = parseInt(cleaned, 10) || 0;
+  return isNegative ? -num : num;
+}
+
+/**
  * Parsing string input rupiah menjadi angka murni
  *
  * @param {string|number} str

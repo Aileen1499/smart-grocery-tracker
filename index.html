@@ -136,7 +136,7 @@
             <button type="button" id="btn-toggle-form" class="btn-text-link" aria-label="Minimize form">Ringkas</button>
           </div>
 
-          <form id="item-form" autocomplete="off">
+          <form id="item-form" autocomplete="off" novalidate>
             <div class="input-stack">
               <label for="item-name" class="native-label">Nama Barang <span class="req-star">*</span></label>
               <input 
@@ -144,7 +144,6 @@
                 id="item-name" 
                 class="native-input big-text-input" 
                 placeholder="cth: Beras Rojolele / Telur 1kg" 
-                required
               >
             </div>
 
@@ -167,15 +166,14 @@
               <div class="input-stack">
                 <label for="item-price" class="native-label">Harga Satuan (Rp) <span class="req-star">*</span></label>
                 <input 
-                  type="number" 
+                  type="text" 
                   id="item-price" 
                   class="native-input num-input-large" 
-                  placeholder="74000" 
-                  min="1" 
-                  step="500" 
+                  placeholder="cth: 74,000" 
                   inputmode="numeric" 
-                  required
+                  autocomplete="off"
                 >
+                <div id="item-price-helper" class="field-helper-hint">Format: Rp 0</div>
               </div>
               <div class="input-stack">
                 <label for="item-qty" class="native-label">Jumlah (Qty) <span class="req-star">*</span></label>
@@ -187,7 +185,6 @@
                   min="1" 
                   max="999" 
                   inputmode="numeric" 
-                  required
                 >
               </div>
             </div>
@@ -246,12 +243,6 @@
             </div>
             <h3 class="empty-title">Keranjang Belanja Masih Kosong</h3>
             <p class="empty-subtitle">Keranjang belanja masih kosong, silakan scan atau tambahkan kebutuhan pokok pertamamu</p>
-            <button type="button" id="btn-load-scenario" class="btn-load-scenario">
-              <svg class="lucide lucide-sparkles" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-              </svg>
-              <span>Muat Skenario Uji DT2 Kasus Rian</span>
-            </button>
           </div>
 
           <!-- List Kartu Item Mobile -->
@@ -336,7 +327,7 @@
               class="native-input num-input-large" 
               value="350000" 
               min="0" 
-              step="5000" 
+              step="any"
               inputmode="numeric" 
               placeholder="350000"
             >

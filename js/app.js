@@ -9,7 +9,9 @@ import {
   calculateSubtotal,
   calculateGrandTotal,
   formatRupiah,
-  parseRupiah
+  parseRupiah,
+  formatNumberWithCommas,
+  parsePriceInput
 } from './calculator.js';
 
 import {
@@ -92,6 +94,7 @@ function initDomReferences() {
     itemUnitSelect: document.getElementById('item-unit'),
     itemQtyInput: document.getElementById('item-qty'),
     itemPriceInput: document.getElementById('item-price'),
+    itemPriceHelper: document.getElementById('item-price-helper'),
     itemDiscountInput: document.getElementById('item-discount'),
     formPreviewBox: document.getElementById('form-preview-box'),
     btnToggleForm: document.getElementById('btn-toggle-form'),
@@ -490,13 +493,71 @@ function updateSyncStatusBadge(status) {
 }
 
 /**
+ * Memperbarui teks petunjuk rupiah di bawah input harga
+ */
+function updatePriceHelper() {
+  if (!dom.itemPriceHelper || !dom.itemPriceInput) return;
+  const raw = dom.itemPriceInput.value.trim();
+  if (!raw) {
+    dom.itemPriceHelper.textContent = 'Format: Rp 0';
+    dom.itemPriceHelper.className = 'field-helper-hint';
+    return;
+  }
+
+  const isNeg = raw.includes('-');
+  const parsed = parsePriceInput(raw);
+
+  if (isNeg || parsed < 0) {
+    dom.itemPriceHelper.textContent = `⚠️ Nilai negatif (${formatRupiah(parsed)}) tidak diperbolehkan`;
+    dom.itemPriceHelper.className = 'field-helper-hint hint-error';
+  } else if (parsed > 0) {
+    dom.itemPriceHelper.textContent = `Format: ${formatRupiah(parsed)}`;
+    dom.itemPriceHelper.className = 'field-helper-hint hint-highlight';
+  } else {
+    dom.itemPriceHelper.textContent = 'Format: Rp 0';
+    dom.itemPriceHelper.className = 'field-helper-hint';
+  }
+}
+
+/**
+ * Memformat input harga dengan pemisah ribuan berupa koma (,) secara realtime
+ */
+function handlePriceInput(e) {
+  const input = e.target;
+  const val = input.value;
+
+  input.classList.remove('input-error');
+
+  if (val === '' || val === '-') {
+    updatePriceHelper();
+    updateFormPreview();
+    return;
+  }
+
+  const isNeg = val.trim().startsWith('-');
+  const digits = val.replace(/[^0-9]/g, '');
+  if (!digits) {
+    input.value = isNeg ? '-' : '';
+    updatePriceHelper();
+    updateFormPreview();
+    return;
+  }
+
+  // Format angka dengan koma pemisah ribuan (misal: 74,000 atau 100,000)
+  input.value = formatNumberWithCommas(val);
+
+  updatePriceHelper();
+  updateFormPreview();
+}
+
+/**
  * Mengupdate realtime preview kalkulasi form saat pengguna mengetik
  */
 function updateFormPreview() {
   if (!dom.formPreviewBox) return;
 
   const name = dom.itemNameInput?.value.trim() || '';
-  const price = parseFloat(dom.itemPriceInput?.value) || 0;
+  const price = parsePriceInput(dom.itemPriceInput?.value) || 0;
   const discountStr = dom.itemDiscountInput?.value.trim() || '';
 
   if (price <= 0 && !name) {
@@ -558,41 +619,65 @@ function updateFormPreview() {
 }
 
 /**
- * Menangani penambahan item belanja dari form (SRS F-01)
+ * Menangani penambahan item belanja dari form (SRS F-01 & Skenario Uji 1)
+ * Menolak input kosong atau harga minus (-Rp 15.000) tanpa menambah baris rusak
  */
 function handleAddItem(event) {
   event.preventDefault();
 
-  const name = dom.itemNameInput?.value.trim() || '';
+  const nameInput = dom.itemNameInput;
+  const priceInput = dom.itemPriceInput;
+  const qtyInput = dom.itemQtyInput;
+
+  const name = nameInput?.value.trim() || '';
   const category = dom.itemCategorySelect?.value || 'Bahan Pokok';
   const unit = dom.itemUnitSelect?.value || 'pcs';
-  const qtyRaw = dom.itemQtyInput?.value;
-  const priceRaw = dom.itemPriceInput?.value;
+  const priceRaw = priceInput?.value || '';
+  const qtyRaw = qtyInput?.value;
   const discountInput = dom.itemDiscountInput?.value.trim() || '';
 
-  // VALIDASI FORM WAJIB
+  // Reset visual error state
+  nameInput?.classList.remove('input-error');
+  priceInput?.classList.remove('input-error');
+  qtyInput?.classList.remove('input-error');
+
+  // 1. VALIDASI NAMA BARANG KOSONG (Wajib menolak dengan pesan jelas, tidak menambah data)
   if (!name) {
-    showToast('Nama barang wajib diisi!', 'warning');
-    dom.itemNameInput?.focus();
+    nameInput?.classList.add('input-error');
+    nameInput?.focus();
+    showToast('⚠️ Nama barang wajib diisi! Harap masukkan nama barang belanjaan.', 'error');
     return;
   }
 
-  const price = parseFloat(priceRaw);
-  if (isNaN(price) || price <= 0) {
-    showToast('Harga barang harus angka positif lebih dari 0! (Tidak boleh minus atau kosong)', 'error');
-    dom.itemPriceInput?.focus();
+  // 2. VALIDASI HARGA MINUS / INVALID / KOSONG (Wajib menolak input minus misal: -Rp 15.000)
+  const isNegative = String(priceRaw).trim().includes('-');
+  const parsedPrice = parsePriceInput(priceRaw);
+
+  if (isNegative || parsedPrice < 0) {
+    priceInput?.classList.add('input-error');
+    priceInput?.focus();
+    showToast('⚠️ Input Ditolak: Harga barang tidak boleh bernilai negatif (-Rp 15.000)! Masukkan harga positif.', 'error');
     return;
   }
 
+  if (parsedPrice <= 0) {
+    priceInput?.classList.add('input-error');
+    priceInput?.focus();
+    showToast('⚠️ Input Ditolak: Harga barang wajib diisi dengan nominal angka lebih dari Rp 0!', 'error');
+    return;
+  }
+
+  // 3. VALIDASI KUANTITAS INVALID
   const qty = parseInt(qtyRaw, 10);
   if (isNaN(qty) || qty <= 0) {
-    showToast('Kuantitas barang minimal 1!', 'warning');
-    dom.itemQtyInput?.focus();
+    qtyInput?.classList.add('input-error');
+    qtyInput?.focus();
+    showToast('⚠️ Input Ditolak: Kuantitas barang minimal 1!', 'error');
     return;
   }
 
-  // Simpan ke histori dinamis
-  state.customHistory = recordPriceHistory(name, price, state.storeName, state.shoppingDate, state.customHistory);
+  // Simpan ke histori dinamis (Price Tracker SRS F-04)
+  state.customHistory = recordPriceHistory(name, parsedPrice, state.storeName, state.shoppingDate, state.customHistory);
 
   const newItem = {
     id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -600,21 +685,27 @@ function handleAddItem(event) {
     category,
     unit,
     quantity: qty,
-    originalPrice: price,
+    originalPrice: parsedPrice,
     discountInput
   };
 
   state.items.push(newItem);
 
+  // Reset form secara bersih
   dom.itemForm.reset();
   if (dom.itemQtyInput) dom.itemQtyInput.value = '1';
+  if (dom.itemPriceInput) dom.itemPriceInput.value = '';
+  if (dom.itemPriceHelper) {
+    dom.itemPriceHelper.textContent = 'Format: Rp 0';
+    dom.itemPriceHelper.className = 'field-helper-hint';
+  }
   if (dom.formPreviewBox) {
     dom.formPreviewBox.classList.add('hidden');
     dom.formPreviewBox.innerHTML = '';
   }
 
   render(true);
-  showToast(`"${name}" berhasil dimasukkan ke troli`, 'success');
+  showToast(`✅ "${name}" (${formatRupiah(parsedPrice)}) berhasil dimasukkan ke troli`, 'success');
 }
 
 /**
@@ -808,13 +899,21 @@ function bindEventListeners() {
     dom.itemForm.addEventListener('submit', handleAddItem);
   }
 
-  // 2. Realtime preview input form (SRS F-03 & F-04)
-  const previewInputs = [dom.itemNameInput, dom.itemPriceInput, dom.itemDiscountInput];
-  previewInputs.forEach(input => {
-    if (input) {
-      input.addEventListener('input', updateFormPreview);
-    }
-  });
+  // 2. Realtime preview input form (SRS F-03 & F-04) & Format Ribuan Koma
+  if (dom.itemNameInput) {
+    dom.itemNameInput.addEventListener('input', () => {
+      dom.itemNameInput.classList.remove('input-error');
+      updateFormPreview();
+    });
+  }
+
+  if (dom.itemPriceInput) {
+    dom.itemPriceInput.addEventListener('input', handlePriceInput);
+  }
+
+  if (dom.itemDiscountInput) {
+    dom.itemDiscountInput.addEventListener('input', updateFormPreview);
+  }
 
   // 3. Kontrol kuantitas, edit, dan hapus di daftar troli
   if (dom.cartItemsList) {
@@ -894,11 +993,14 @@ function bindEventListeners() {
   if (dom.btnQuickAddBeras) {
     dom.btnQuickAddBeras.addEventListener('click', () => {
       dom.itemNameInput.value = 'Beras Rojolele';
+      dom.itemNameInput.classList.remove('input-error');
       dom.itemCategorySelect.value = 'Bahan Pokok';
       dom.itemUnitSelect.value = 'karung/5kg';
       dom.itemQtyInput.value = '1';
-      dom.itemPriceInput.value = '74000';
+      dom.itemPriceInput.value = '74,000';
+      dom.itemPriceInput.classList.remove('input-error');
       dom.itemDiscountInput.value = '';
+      updatePriceHelper();
       updateFormPreview();
       dom.itemNameInput.focus();
     });
@@ -907,11 +1009,14 @@ function bindEventListeners() {
   if (dom.btnQuickAddMinyak) {
     dom.btnQuickAddMinyak.addEventListener('click', () => {
       dom.itemNameInput.value = 'Minyak Goreng 2L';
+      dom.itemNameInput.classList.remove('input-error');
       dom.itemCategorySelect.value = 'Bahan Pokok';
       dom.itemUnitSelect.value = 'liter';
       dom.itemQtyInput.value = '1';
-      dom.itemPriceInput.value = '43000';
+      dom.itemPriceInput.value = '43,000';
+      dom.itemPriceInput.classList.remove('input-error');
       dom.itemDiscountInput.value = '';
+      updatePriceHelper();
       updateFormPreview();
       dom.itemNameInput.focus();
     });
@@ -928,12 +1033,15 @@ function bindEventListeners() {
         const unit = btn.getAttribute('data-unit') || 'pcs';
 
         dom.itemNameInput.value = name;
+        dom.itemNameInput.classList.remove('input-error');
         dom.itemCategorySelect.value = category;
         dom.itemUnitSelect.value = unit;
-        dom.itemPriceInput.value = price;
+        dom.itemPriceInput.value = formatNumberWithCommas(price);
+        dom.itemPriceInput.classList.remove('input-error');
         dom.itemQtyInput.value = '1';
         dom.itemDiscountInput.value = '';
 
+        updatePriceHelper();
         switchTab('tab-belanja');
         updateFormPreview();
         showToast(`Item "${name}" siap dimasukkan ke form`, 'info');
