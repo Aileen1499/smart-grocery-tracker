@@ -216,3 +216,16 @@ export function comparePrice(itemName, currentPrice, storeName = DEFAULT_STORE, 
     };
   }
 }
+
+/**
+ * Mengambil katalog harga acuan untuk toko tertentu (untuk tab Riwayat Toko)
+ * 
+ * @param {string} storeName Nama supermarket
+ * @param {string} referenceDate Tanggal pembanding
+ * @returns {Array} Daftar item katalog dan harga histori
+ */
+export function getStorePriceCatalog(storeName = DEFAULT_STORE, referenceDate = HISTORICAL_DATE) {
+  const storeData = HISTORICAL_PRICES[storeName];
+  if (!storeData) return [];
+  return storeData[referenceDate] || storeData[HISTORICAL_DATE] || [];
+}

@@ -1,6 +1,7 @@
 /**
- * Smart Grocery & Price Tracker - Main Controller
- * Memenuhi seluruh spesifikasi F-01 sampai F-06 & Prioritas 1 sampai 7
+ * Smart Grocery & Budget Safety Tracker - Native Mobile PWA Controller
+ * Dirancang khusus tampilan smartphone (Mobile UI <= 430px)
+ * Mendukung Bottom Navigation Bar melayang (Belanja, Riwayat Toko, Anggaran)
  */
 
 import {
@@ -13,7 +14,8 @@ import {
 
 import {
   comparePrice,
-  recordPriceHistory
+  recordPriceHistory,
+  getStorePriceCatalog
 } from './comparator.js';
 
 import {
@@ -48,12 +50,13 @@ import {
 
 // State aplikasi aktif
 let state = getDefaultState();
+let activeTab = 'tab-belanja';
 
 // Referensi Elemen DOM
 let dom = {};
 
 /**
- * Menginisialisasi referensi elemen DOM
+ * Menginisialisasi seluruh referensi elemen DOM
  */
 function initDomReferences() {
   dom = {
@@ -61,18 +64,15 @@ function initDomReferences() {
     dangerBanner: document.getElementById('danger-banner'),
     dangerBannerText: document.getElementById('danger-banner-text'),
 
-    // Form Sesi
+    // Header Sesi Belanja
     storeSelect: document.getElementById('store-select'),
     dateInput: document.getElementById('date-input'),
 
-    // Budget Cap
-    budgetLimitInput: document.getElementById('budget-limit-input'),
-    budgetProgressBar: document.getElementById('budget-progress-bar'),
+    // Quick Budget Meter (Tab Belanja)
+    qbTotal: document.getElementById('qb-total'),
+    qbRemaining: document.getElementById('qb-remaining'),
     budgetProgressFill: document.getElementById('budget-progress-fill'),
-    budgetBadge: document.getElementById('budget-status-badge'),
-    budgetRemainingText: document.getElementById('budget-remaining-text'),
-    budgetTotalText: document.getElementById('budget-total-text'),
-    budgetPercentText: document.getElementById('budget-percent-text'),
+    budgetStatusBadge: document.getElementById('budget-status-badge'),
 
     // Form Input Item
     itemForm: document.getElementById('item-form'),
@@ -83,8 +83,9 @@ function initDomReferences() {
     itemPriceInput: document.getElementById('item-price'),
     itemDiscountInput: document.getElementById('item-discount'),
     formPreviewBox: document.getElementById('form-preview-box'),
+    btnToggleForm: document.getElementById('btn-toggle-form'),
 
-    // Keranjang
+    // Keranjang Belanja
     cartCountBadge: document.getElementById('cart-count-badge'),
     cartItemsList: document.getElementById('cart-items-list'),
     emptyStateContainer: document.getElementById('empty-state'),
@@ -93,9 +94,25 @@ function initDomReferences() {
     btnQuickAddBeras: document.getElementById('btn-quick-beras'),
     btnQuickAddMinyak: document.getElementById('btn-quick-minyak'),
 
-    // Sticky Bottom Bar
-    stickyTotalText: document.getElementById('sticky-total-text'),
-    stickyStatusBadge: document.getElementById('sticky-status-badge')
+    // Tab 2: Riwayat Toko
+    riwayatStoreTag: document.getElementById('riwayat-store-tag'),
+    compCurrDate: document.getElementById('comp-curr-date'),
+    compPastDate: document.getElementById('comp-past-date'),
+    historyCatalogContainer: document.getElementById('history-catalog-container'),
+
+    // Tab 3: Anggaran
+    tabBudgetBadge: document.getElementById('tab-budget-badge'),
+    budgetLimitInput: document.getElementById('budget-limit-input'),
+    budgetPercentText: document.getElementById('budget-percent-text'),
+    tabBudgetProgressFill: document.getElementById('tab-budget-progress-fill'),
+    budgetTotalText: document.getElementById('budget-total-text'),
+    budgetRemainingText: document.getElementById('budget-remaining-text'),
+
+    // Bottom Navigation Bar
+    navTabBtns: document.querySelectorAll('.nav-tab-btn'),
+    navBadgeCount: document.getElementById('nav-badge-count'),
+    navBudgetDot: document.getElementById('nav-budget-dot'),
+    tabViews: document.querySelectorAll('.tab-view')
   };
 }
 
@@ -123,16 +140,16 @@ function populateDropdownOptions() {
 }
 
 /**
- * Menghitung ulang seluruh subtotal item, grand total, komparasi harga, dan status budget
+ * Menghitung ulang seluruh subtotal, grand total, komparasi harga, dan evaluasi anggaran
  */
 function recalculateAll() {
   state.items = state.items.map(item => {
-    // Diskon kompound (Prioritas 3)
+    // Diskon kompound (SRS F-03)
     const discountRes = calculateDiscount(item.originalPrice, item.discountInput || '');
     const finalUnitPrice = discountRes.finalPrice;
     const subtotal = calculateSubtotal(finalUnitPrice, item.quantity);
 
-    // Komparasi harga historis & pelacakan (Prioritas 4: Price Tracker)
+    // Komparasi harga historis (SRS F-04: Price Tracker)
     const comparison = comparePrice(
       item.name,
       item.originalPrice,
@@ -157,12 +174,12 @@ function recalculateAll() {
 }
 
 /**
- * Merender seluruh tampilan UI aplikasi
+ * Merender seluruh tampilan UI aplikasi mobile
  */
 function render() {
   const { grandTotal, budgetEvaluation } = recalculateAll();
 
-  // 1. Render Banner Peringatan Bahaya (> 100%) (SRS F-05 & Prioritas 5)
+  // 1. Render Banner Peringatan Bahaya (> 100%) (SRS F-05)
   if (dom.dangerBanner) {
     if (budgetEvaluation.showDangerBanner) {
       dom.dangerBanner.classList.remove('hidden');
@@ -174,7 +191,7 @@ function render() {
     }
   }
 
-  // 2. Render Form Sesi (Toko & Tanggal) (SRS F-01)
+  // 2. Render Header Sesi Belanja (SRS F-01)
   if (dom.storeSelect && dom.storeSelect.value !== state.storeName) {
     dom.storeSelect.value = state.storeName;
   }
@@ -182,42 +199,51 @@ function render() {
     dom.dateInput.value = state.shoppingDate;
   }
 
-  // 3. Render Budget Safety Cap (SRS F-05 & Prioritas 5)
-  if (dom.budgetLimitInput) {
-    if (document.activeElement !== dom.budgetLimitInput) {
-      dom.budgetLimitInput.value = state.budgetLimit;
-    }
+  // 3. Render Quick Budget Meter (Tab Belanja)
+  if (dom.qbTotal) dom.qbTotal.textContent = formatRupiah(grandTotal);
+  if (dom.qbRemaining) dom.qbRemaining.textContent = budgetEvaluation.remainingFormatted;
+  if (dom.budgetStatusBadge) {
+    dom.budgetStatusBadge.textContent = budgetEvaluation.statusLabel;
+    dom.budgetStatusBadge.className = `status-badge ${budgetEvaluation.statusClass}`;
   }
   if (dom.budgetProgressFill) {
     dom.budgetProgressFill.style.width = `${budgetEvaluation.progressWidth}%`;
     dom.budgetProgressFill.className = `progress-fill ${budgetEvaluation.barClass}`;
   }
-  if (dom.budgetBadge) {
-    dom.budgetBadge.textContent = budgetEvaluation.statusLabel;
-    dom.budgetBadge.className = `status-badge ${budgetEvaluation.statusClass}`;
-  }
-  if (dom.budgetTotalText) {
-    dom.budgetTotalText.textContent = formatRupiah(grandTotal);
-  }
-  if (dom.budgetRemainingText) {
-    dom.budgetRemainingText.textContent = budgetEvaluation.remainingFormatted;
-  }
-  if (dom.budgetPercentText) {
-    dom.budgetPercentText.textContent = budgetEvaluation.percentageFormatted;
-  }
 
-  // 4. Render Sticky Bottom Bar (Ergonomi Mobile)
-  if (dom.stickyTotalText) {
-    dom.stickyTotalText.textContent = formatRupiah(grandTotal);
+  // 4. Render Tab 3: Anggaran (Full Dashboard)
+  if (dom.tabBudgetBadge) {
+    dom.tabBudgetBadge.textContent = budgetEvaluation.statusLabel;
+    dom.tabBudgetBadge.className = `status-badge ${budgetEvaluation.statusClass}`;
   }
-  if (dom.stickyStatusBadge) {
-    dom.stickyStatusBadge.textContent = budgetEvaluation.statusLabel;
-    dom.stickyStatusBadge.className = `status-badge ${budgetEvaluation.statusClass}`;
+  if (dom.budgetLimitInput && document.activeElement !== dom.budgetLimitInput) {
+    dom.budgetLimitInput.value = state.budgetLimit;
   }
+  if (dom.budgetPercentText) dom.budgetPercentText.textContent = budgetEvaluation.percentageFormatted;
+  if (dom.tabBudgetProgressFill) {
+    dom.tabBudgetProgressFill.style.width = `${budgetEvaluation.progressWidth}%`;
+    dom.tabBudgetProgressFill.className = `progress-fill ${budgetEvaluation.barClass}`;
+  }
+  if (dom.budgetTotalText) dom.budgetTotalText.textContent = formatRupiah(grandTotal);
+  if (dom.budgetRemainingText) dom.budgetRemainingText.textContent = budgetEvaluation.remainingFormatted;
 
-  // 5. Render Daftar Keranjang Belanja (Prioritas 1 s.d 4)
+  // 5. Render Keranjang Belanja (Tab Belanja)
   if (dom.cartCountBadge) {
     dom.cartCountBadge.textContent = `${state.items.length} Barang`;
+  }
+  if (dom.navBadgeCount) {
+    dom.navBadgeCount.textContent = state.items.length;
+  }
+
+  // Dot Indikator Status Anggaran di Nav Bawah
+  if (dom.navBudgetDot) {
+    if (budgetEvaluation.isDanger) {
+      dom.navBudgetDot.className = 'nav-dot-danger';
+    } else if (budgetEvaluation.isWarning) {
+      dom.navBudgetDot.className = 'nav-dot-warn';
+    } else {
+      dom.navBudgetDot.className = 'nav-dot-safe';
+    }
   }
 
   if (state.items.length === 0) {
@@ -230,18 +256,21 @@ function render() {
     }
   }
 
+  // 6. Render Tab 2: Riwayat Toko (Katalog Fluktuasi Harga Realtime)
+  renderHistoryCatalog();
+
   // Simpan state terkini ke LocalStorage (SRS F-06A)
   saveState(state);
 }
 
 /**
- * Merender baris kartu item keranjang belanja
+ * Merender baris kartu item keranjang belanja mobile
  */
 function renderCartItemRow(item, index) {
   const comp = item.comparison || {};
   const disc = item.discountResult || {};
 
-  // Badge komparasi harga dengan nominal, persentase, dan arah perubahan (Prioritas 4)
+  // Badge komparasi harga dengan nominal, persentase, dan arah perubahan
   let compBadgeHtml = '';
   if (comp.status === 'UP') {
     compBadgeHtml = `<span class="price-comp-badge comp-up" title="${comp.message}">
@@ -259,19 +288,19 @@ function renderCartItemRow(item, index) {
     compBadgeHtml = `<span class="price-comp-badge comp-new">Item Baru</span>`;
   }
 
-  // Info diskon jika ada (Prioritas 3)
+  // Info diskon
   let discountHtml = '';
   if (disc.hasDiscount) {
     discountHtml = `
       <div class="item-discount-info">
-        <span class="orig-price-strike">${formatRupiah(item.originalPrice)}</span>
-        <span class="discount-pill">Promo ${disc.discountString}</span>
-        <span class="final-unit-tag">${formatRupiah(item.finalUnitPrice)}/${item.unit}</span>
+        <span class="orig-strike">${formatRupiah(item.originalPrice)}</span>
+        <span class="disc-pill">Promo ${disc.discountString}</span>
+        <span class="final-price-tag">${formatRupiah(item.finalUnitPrice)}/${item.unit}</span>
       </div>
     `;
   } else {
     discountHtml = `
-      <div class="item-unit-price">${formatRupiah(item.originalPrice)} / ${item.unit}</div>
+      <div class="final-price-tag">${formatRupiah(item.originalPrice)} / ${item.unit}</div>
     `;
   }
 
@@ -280,12 +309,12 @@ function renderCartItemRow(item, index) {
       <div class="cart-item-header">
         <div class="item-identity">
           <span class="item-title">${escapeHtml(item.name)}</span>
-          <div class="item-meta">
-            <span class="badge-cat">${escapeHtml(item.category)}</span>
-            <span class="badge-unit">${escapeHtml(item.unit)}</span>
+          <div class="item-meta-tags">
+            <span class="tag-cat">${escapeHtml(item.category)}</span>
+            <span class="tag-unit">${escapeHtml(item.unit)}</span>
           </div>
         </div>
-        <div class="item-comp-wrapper">
+        <div>
           ${compBadgeHtml}
         </div>
       </div>
@@ -295,7 +324,7 @@ function renderCartItemRow(item, index) {
       </div>
 
       <div class="cart-item-footer">
-        <div class="qty-controller" role="group" aria-label="Pengatur kuantitas ${escapeHtml(item.name)}">
+        <div class="qty-controller" role="group" aria-label="Kuantitas ${escapeHtml(item.name)}">
           <button type="button" class="btn-qty btn-minus" data-id="${item.id}" aria-label="Kurangi kuantitas">−</button>
           <input 
             type="number" 
@@ -305,7 +334,7 @@ function renderCartItemRow(item, index) {
             min="1" 
             max="999" 
             inputmode="numeric" 
-            aria-label="Jumlah kuantitas"
+            aria-label="Jumlah"
           />
           <button type="button" class="btn-qty btn-plus" data-id="${item.id}" aria-label="Tambah kuantitas">+</button>
         </div>
@@ -316,7 +345,7 @@ function renderCartItemRow(item, index) {
         </div>
 
         <div class="item-actions-group">
-          <!-- Tombol Edit Item (Prioritas 1) -->
+          <!-- Tombol Edit Item -->
           <button 
             type="button" 
             class="btn-edit-item" 
@@ -330,7 +359,7 @@ function renderCartItemRow(item, index) {
             </svg>
           </button>
 
-          <!-- Tombol Hapus Baris Item (Prioritas 1 & F-06A) -->
+          <!-- Tombol Hapus Baris Item -->
           <button 
             type="button" 
             class="btn-delete-item" 
@@ -353,6 +382,72 @@ function renderCartItemRow(item, index) {
 }
 
 /**
+ * Merender daftar fluktuasi harga katalog supermarket di Tab 2 (Riwayat Toko)
+ */
+function renderHistoryCatalog() {
+  if (!dom.historyCatalogContainer) return;
+
+  if (dom.riwayatStoreTag) dom.riwayatStoreTag.textContent = state.storeName;
+  if (dom.compCurrDate) dom.compCurrDate.textContent = state.shoppingDate;
+
+  const catalog = getStorePriceCatalog(state.storeName, '2026-09-26');
+  if (!catalog || catalog.length === 0) {
+    dom.historyCatalogContainer.innerHTML = `
+      <div style="text-align:center; padding: 20px; color: var(--neutral-muted);">
+        Belum ada katalog harga untuk toko ini.
+      </div>
+    `;
+    return;
+  }
+
+  dom.historyCatalogContainer.innerHTML = catalog.map(catItem => {
+    // Cari apakah barang ini sudah ada di keranjang sekarang
+    const inCart = state.items.find(i => 
+      i.name.toLowerCase().includes(catItem.name.toLowerCase()) || 
+      catItem.name.toLowerCase().includes(i.name.toLowerCase())
+    );
+
+    const currentPrice = inCart ? inCart.originalPrice : catItem.price;
+    const comp = comparePrice(catItem.name, currentPrice, state.storeName, '2026-09-26', state.customHistory);
+
+    let badgeHtml = '';
+    if (comp.status === 'UP') {
+      badgeHtml = `<span class="price-comp-badge comp-up">↑ ${comp.diffFormatted} (${comp.diffPercentFormatted})</span>`;
+    } else if (comp.status === 'DOWN') {
+      badgeHtml = `<span class="price-comp-badge comp-down">↓ ${comp.diffFormatted} (${comp.diffPercentFormatted})</span>`;
+    } else {
+      badgeHtml = `<span class="price-comp-badge comp-stable">= Stabil (0%)</span>`;
+    }
+
+    return `
+      <div class="catalog-item-card">
+        <div class="cat-item-left">
+          <strong class="cat-item-name">${escapeHtml(catItem.name)}</strong>
+          <div class="cat-item-prices">
+            <span>Bulan lalu: ${formatRupiah(catItem.price)}</span>
+            <span>•</span>
+            <span>Satuan: ${escapeHtml(catItem.unit)}</span>
+          </div>
+        </div>
+        <div class="cat-item-right">
+          ${badgeHtml}
+          <button 
+            type="button" 
+            class="btn-add-from-catalog" 
+            data-name="${escapeHtml(catItem.name)}" 
+            data-price="${catItem.price}" 
+            data-cat="${escapeHtml(catItem.category)}" 
+            data-unit="${escapeHtml(catItem.unit)}"
+          >
+            + Ke Troli
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
  * Sanitasi string HTML untuk mencegah XSS
  */
 function escapeHtml(str) {
@@ -366,7 +461,7 @@ function escapeHtml(str) {
 }
 
 /**
- * Mengupdate realtime preview kalkulasi form saat pengguna mengetik harga / diskon / nama
+ * Mengupdate realtime preview kalkulasi form saat pengguna mengetik
  */
 function updateFormPreview() {
   if (!dom.formPreviewBox) return;
@@ -383,7 +478,7 @@ function updateFormPreview() {
 
   let htmlParts = [];
 
-  // Preview Diskon Kompound (SRS F-03 & Prioritas 3)
+  // Preview Diskon Kompound (SRS F-03)
   if (price > 0 && discountStr) {
     const disc = calculateDiscount(price, discountStr);
     if (disc.hasDiscount) {
@@ -397,28 +492,28 @@ function updateFormPreview() {
     }
   }
 
-  // Preview Komparasi Fluktuasi Harga (SRS F-04 & Prioritas 4)
+  // Preview Komparasi Fluktuasi Harga (SRS F-04)
   if (name && price > 0) {
     const comp = comparePrice(name, price, state.storeName, '2026-09-26', state.customHistory);
     if (comp.status === 'UP') {
       htmlParts.push(`
         <div class="preview-item preview-up">
-          <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>↑ ${comp.diffFormatted} (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
+          <span class="preview-tag">Bulan Lalu:</span>
+          <strong style="color:var(--danger)">↑ ${comp.diffFormatted} (${comp.diffPercentFormatted})</strong> (Histori: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     } else if (comp.status === 'DOWN') {
       htmlParts.push(`
         <div class="preview-item preview-down">
-          <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>↓ ${comp.diffFormatted} (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
+          <span class="preview-tag">Bulan Lalu:</span>
+          <strong style="color:var(--success)">↓ ${comp.diffFormatted} (${comp.diffPercentFormatted})</strong> (Histori: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     } else if (comp.status === 'STABLE') {
       htmlParts.push(`
         <div class="preview-item preview-stable">
-          <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>= Stabil (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Harga sama: ${formatRupiah(comp.historicalPrice)})
+          <span class="preview-tag">Bulan Lalu:</span>
+          <strong style="color:var(--neutral-muted)">= Stabil (0%)</strong> (Harga sama: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     }
@@ -434,7 +529,7 @@ function updateFormPreview() {
 }
 
 /**
- * Menangani penambahan item belanja dari form (Prioritas 1 & 6)
+ * Menangani penambahan item belanja dari form (SRS F-01)
  */
 function handleAddItem(event) {
   event.preventDefault();
@@ -446,23 +541,20 @@ function handleAddItem(event) {
   const priceRaw = dom.itemPriceInput?.value;
   const discountInput = dom.itemDiscountInput?.value.trim() || '';
 
-  // VALIDASI INPUT & PENANGANAN ERROR (Prioritas 6):
-  // 1. Nama barang tidak boleh kosong
+  // VALIDASI FORM WAJIB
   if (!name) {
     showToast('Nama barang wajib diisi!', 'warning');
     dom.itemNameInput?.focus();
     return;
   }
 
-  // 2. Harga tidak boleh negatif atau 0
   const price = parseFloat(priceRaw);
   if (isNaN(price) || price <= 0) {
-    showToast('Harga barang harus berupa angka positif lebih dari 0! (Tidak boleh minus atau kosong)', 'error');
+    showToast('Harga barang harus angka positif lebih dari 0! (Tidak boleh minus atau kosong)', 'error');
     dom.itemPriceInput?.focus();
     return;
   }
 
-  // 3. Kuantitas harus minimal 1
   const qty = parseInt(qtyRaw, 10);
   if (isNaN(qty) || qty <= 0) {
     showToast('Kuantitas barang minimal 1!', 'warning');
@@ -470,10 +562,9 @@ function handleAddItem(event) {
     return;
   }
 
-  // Catat harga ke Price Tracker history
+  // Simpan ke histori dinamis
   state.customHistory = recordPriceHistory(name, price, state.storeName, state.shoppingDate, state.customHistory);
 
-  // Buat objek item baru
   const newItem = {
     id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     name,
@@ -484,10 +575,8 @@ function handleAddItem(event) {
     discountInput
   };
 
-  // Tambahkan ke keranjang
   state.items.push(newItem);
 
-  // Reset form
   dom.itemForm.reset();
   if (dom.itemQtyInput) dom.itemQtyInput.value = '1';
   if (dom.formPreviewBox) {
@@ -496,16 +585,16 @@ function handleAddItem(event) {
   }
 
   render();
-  showToast(`"${name}" berhasil ditambahkan ke keranjang`, 'success');
+  showToast(`"${name}" berhasil dimasukkan ke troli`, 'success');
 }
 
 /**
- * Menangani klik kontrol kuantitas (+ / -), tombol edit, dan tombol hapus (Prioritas 1 & 2)
+ * Menangani klik kontrol kuantitas (+ / -), tombol edit, dan tombol hapus
  */
 async function handleCartListClick(event) {
   const target = event.target;
 
-  // Tombol Plus (+) Kuantitas
+  // Tombol Plus (+) Kuantitas (SRS F-02)
   const btnPlus = target.closest('.btn-plus');
   if (btnPlus) {
     const id = btnPlus.getAttribute('data-id');
@@ -517,7 +606,7 @@ async function handleCartListClick(event) {
     return;
   }
 
-  // Tombol Minus (-) Kuantitas
+  // Tombol Minus (-) Kuantitas (SRS F-02)
   const btnMinus = target.closest('.btn-minus');
   if (btnMinus) {
     const id = btnMinus.getAttribute('data-id');
@@ -527,7 +616,7 @@ async function handleCartListClick(event) {
         item.quantity -= 1;
         render();
       } else {
-        showToast('Kuantitas minimal adalah 1. Gunakan tombol hapus jika ingin membuang item.', 'info');
+        showToast('Kuantitas minimal 1. Gunakan tombol hapus untuk membuang item.', 'info');
       }
     }
     return;
@@ -541,7 +630,6 @@ async function handleCartListClick(event) {
     if (item) {
       const updated = await showEditItemModal(item);
       if (updated) {
-        // Simpan harga sebelumnya ke histori untuk pelacakan price tracker
         state.customHistory = recordPriceHistory(
           item.name,
           item.originalPrice,
@@ -560,7 +648,7 @@ async function handleCartListClick(event) {
     return;
   }
 
-  // Tombol Hapus Baris Item (Prioritas 1: Hapus Barang)
+  // Tombol Hapus Baris Item (SRS F-06A)
   const btnDelete = target.closest('.btn-delete-item');
   if (btnDelete) {
     const id = btnDelete.getAttribute('data-id');
@@ -576,7 +664,7 @@ async function handleCartListClick(event) {
 }
 
 /**
- * Menangani perubahan langsung nilai kuantitas pada input number
+ * Menangani perubahan langsung kuantitas pada input number
  */
 function handleQtyInputChange(event) {
   const target = event.target;
@@ -598,7 +686,7 @@ function handleQtyInputChange(event) {
 }
 
 /**
- * Memuat Skenario Uji DT2 Lengkap untuk kemudahan demonstrasi
+ * Memuat Skenario Uji DT2 Lengkap untuk demonstrasi
  */
 function loadScenarioDT2() {
   state.storeName = DEFAULT_STORE;
@@ -658,15 +746,44 @@ function loadScenarioDT2() {
 }
 
 /**
+ * Berpindah tab pada Bottom Navigation Bar
+ * @param {string} tabId ID Tab yang dituju (tab-belanja, tab-riwayat, tab-anggaran)
+ */
+function switchTab(tabId) {
+  activeTab = tabId;
+
+  // Update tampilan konten tab
+  dom.tabViews.forEach(view => {
+    if (view.id === tabId) {
+      view.classList.add('active');
+    } else {
+      view.classList.remove('active');
+    }
+  });
+
+  // Update status tombol navigasi bawah
+  dom.navTabBtns.forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Scroll ke atas dengan halus saat berpindah tab
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
  * Menghubungkan seluruh event listener antarmuka pengguna
  */
 function bindEventListeners() {
-  // 1. Form submit tambah item (SRS F-01 & Prioritas 1)
+  // 1. Form submit tambah item (SRS F-01)
   if (dom.itemForm) {
     dom.itemForm.addEventListener('submit', handleAddItem);
   }
 
-  // 2. Realtime preview input form (Prioritas 3 & 4)
+  // 2. Realtime preview input form (SRS F-03 & F-04)
   const previewInputs = [dom.itemNameInput, dom.itemPriceInput, dom.itemDiscountInput];
   previewInputs.forEach(input => {
     if (input) {
@@ -674,13 +791,13 @@ function bindEventListeners() {
     }
   });
 
-  // 3. Kontrol kuantitas, edit, dan hapus di daftar keranjang (Prioritas 1 & 2)
+  // 3. Kontrol kuantitas, edit, dan hapus di daftar troli
   if (dom.cartItemsList) {
     dom.cartItemsList.addEventListener('click', handleCartListClick);
     dom.cartItemsList.addEventListener('change', handleQtyInputChange);
   }
 
-  // 4. Ubah limit saldo dompet (Prioritas 5)
+  // 4. Ubah limit saldo dompet (SRS F-05)
   if (dom.budgetLimitInput) {
     dom.budgetLimitInput.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
@@ -691,7 +808,7 @@ function bindEventListeners() {
     });
   }
 
-  // 5. Preset chips limit saldo dompet (Prioritas 5)
+  // 5. Preset chips limit saldo dompet
   const budgetChips = document.querySelectorAll('.chip-budget');
   budgetChips.forEach(chip => {
     chip.addEventListener('click', () => {
@@ -705,12 +822,12 @@ function bindEventListeners() {
     });
   });
 
-  // 6. Ubah Lokasi Toko & Tanggal (SRS F-01)
+  // 6. Ubah Lokasi Supermarket & Tanggal Transaksi (Standar Arsitektur 2)
   if (dom.storeSelect) {
     dom.storeSelect.addEventListener('change', (e) => {
       state.storeName = e.target.value;
       render();
-      showToast(`Lokasi belanja diubah ke: ${state.storeName}`, 'info');
+      showToast(`Lokasi toko: ${state.storeName}`, 'info');
     });
   }
 
@@ -721,7 +838,7 @@ function bindEventListeners() {
     });
   }
 
-  // 7. Tombol Reset / Hapus Seluruh Keranjang dengan Modal Konfirmasi Aman
+  // 7. Tombol Kosongkan Troli dengan Modal Konfirmasi Aman
   if (dom.btnClearCart) {
     dom.btnClearCart.addEventListener('click', async () => {
       if (state.items.length === 0) {
@@ -775,7 +892,54 @@ function bindEventListeners() {
     });
   }
 
-  // 10. Inisialisasi Sinkronisasi Realtime Antar-Tab
+  // 10. Tombol Tambah ke Troli dari Tab Riwayat Toko
+  if (dom.historyCatalogContainer) {
+    dom.historyCatalogContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-add-from-catalog');
+      if (btn) {
+        const name = btn.getAttribute('data-name');
+        const price = parseFloat(btn.getAttribute('data-price')) || 0;
+        const category = btn.getAttribute('data-cat') || 'Bahan Pokok';
+        const unit = btn.getAttribute('data-unit') || 'pcs';
+
+        dom.itemNameInput.value = name;
+        dom.itemCategorySelect.value = category;
+        dom.itemUnitSelect.value = unit;
+        dom.itemPriceInput.value = price;
+        dom.itemQtyInput.value = '1';
+        dom.itemDiscountInput.value = '';
+
+        switchTab('tab-belanja');
+        updateFormPreview();
+        showToast(`Item "${name}" siap dimasukkan ke form`, 'info');
+      }
+    });
+  }
+
+  // 11. Navigasi Bawah (Bottom Navigation Bar)
+  dom.navTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+      if (targetTab) {
+        switchTab(targetTab);
+      }
+    });
+  });
+
+  // 12. Tombol Minimize/Ringkas Form
+  if (dom.btnToggleForm) {
+    dom.btnToggleForm.addEventListener('click', () => {
+      if (dom.itemForm.style.display === 'none') {
+        dom.itemForm.style.display = 'block';
+        dom.btnToggleForm.textContent = 'Ringkas';
+      } else {
+        dom.itemForm.style.display = 'none';
+        dom.btnToggleForm.textContent = 'Buka Form';
+      }
+    });
+  }
+
+  // 13. Inisialisasi Sinkronisasi Realtime Antar-Tab
   initLocalSync((updatedState) => {
     state = updatedState;
     render();
@@ -783,7 +947,7 @@ function bindEventListeners() {
 }
 
 /**
- * Bootstrapping Aplikasi Smart Grocery Tracker
+ * Bootstrapping Aplikasi Smart Grocery Tracker PWA
  */
 function init() {
   initDomReferences();
