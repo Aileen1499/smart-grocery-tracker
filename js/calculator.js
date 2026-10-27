@@ -26,8 +26,8 @@ export function parseDiscountStages(discountInput) {
   const str = String(discountInput).trim();
   if (!str) return [];
 
-  // Pisahkan berdasarkan tanda '+' atau '&' atau koma
-  const parts = str.split(/[+&,]/);
+  // Pisahkan berdasarkan tanda '+', '&', koma, atau kata 'lalu' / 'kemudian'
+  const parts = str.split(/[+&,]|lalu|kemudian/i);
   const stages = [];
 
   for (const part of parts) {
@@ -165,3 +165,4 @@ export function parseRupiah(str) {
   const cleaned = String(str).replace(/[^0-9]/g, '');
   return parseInt(cleaned, 10) || 0;
 }
+

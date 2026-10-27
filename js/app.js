@@ -1,6 +1,6 @@
 /**
  * Smart Grocery & Price Tracker - Main Controller
- * Implementasi F-01 sampai F-06 berdasarkan Kasus Rian & SRS DT2
+ * Memenuhi seluruh spesifikasi F-01 sampai F-06 & Prioritas 1 sampai 7
  */
 
 import {
@@ -12,7 +12,8 @@ import {
 } from './calculator.js';
 
 import {
-  comparePrice
+  comparePrice,
+  recordPriceHistory
 } from './comparator.js';
 
 import {
@@ -32,7 +33,8 @@ import {
 
 import {
   showToast,
-  showConfirmModal
+  showConfirmModal,
+  showEditItemModal
 } from './ui.js';
 
 import {
@@ -124,14 +126,13 @@ function populateDropdownOptions() {
  * Menghitung ulang seluruh subtotal item, grand total, komparasi harga, dan status budget
  */
 function recalculateAll() {
-  // Update komparasi dan subtotal setiap item
   state.items = state.items.map(item => {
-    // Diskon kompound
+    // Diskon kompound (Prioritas 3)
     const discountRes = calculateDiscount(item.originalPrice, item.discountInput || '');
     const finalUnitPrice = discountRes.finalPrice;
     const subtotal = calculateSubtotal(finalUnitPrice, item.quantity);
 
-    // Komparasi harga historis (SRS F-04)
+    // Komparasi harga historis & pelacakan (Prioritas 4: Price Tracker)
     const comparison = comparePrice(
       item.name,
       item.originalPrice,
@@ -161,7 +162,7 @@ function recalculateAll() {
 function render() {
   const { grandTotal, budgetEvaluation } = recalculateAll();
 
-  // 1. Render Banner Peringatan Bahaya (> 100%) (SRS F-05)
+  // 1. Render Banner Peringatan Bahaya (> 100%) (SRS F-05 & Prioritas 5)
   if (dom.dangerBanner) {
     if (budgetEvaluation.showDangerBanner) {
       dom.dangerBanner.classList.remove('hidden');
@@ -181,9 +182,8 @@ function render() {
     dom.dateInput.value = state.shoppingDate;
   }
 
-  // 3. Render Budget Safety Cap (SRS F-05)
+  // 3. Render Budget Safety Cap (SRS F-05 & Prioritas 5)
   if (dom.budgetLimitInput) {
-    // Biarkan nilai input tetap sinkron tanpa mengganggu kursor pengguna
     if (document.activeElement !== dom.budgetLimitInput) {
       dom.budgetLimitInput.value = state.budgetLimit;
     }
@@ -215,7 +215,7 @@ function render() {
     dom.stickyStatusBadge.className = `status-badge ${budgetEvaluation.statusClass}`;
   }
 
-  // 5. Render Daftar Keranjang Belanja (SRS F-01, F-02, F-03, F-04, F-06A)
+  // 5. Render Daftar Keranjang Belanja (Prioritas 1 s.d 4)
   if (dom.cartCountBadge) {
     dom.cartCountBadge.textContent = `${state.items.length} Barang`;
   }
@@ -241,25 +241,25 @@ function renderCartItemRow(item, index) {
   const comp = item.comparison || {};
   const disc = item.discountResult || {};
 
-  // Badge komparasi harga
+  // Badge komparasi harga dengan nominal, persentase, dan arah perubahan (Prioritas 4)
   let compBadgeHtml = '';
   if (comp.status === 'UP') {
     compBadgeHtml = `<span class="price-comp-badge comp-up" title="${comp.message}">
-      <span class="comp-icon">↑</span> ${comp.diffFormatted}
+      <span class="comp-icon">↑</span> ${comp.diffFormatted} (${comp.diffPercentFormatted})
     </span>`;
   } else if (comp.status === 'DOWN') {
     compBadgeHtml = `<span class="price-comp-badge comp-down" title="${comp.message}">
-      <span class="comp-icon">↓</span> ${comp.diffFormatted}
+      <span class="comp-icon">↓</span> ${comp.diffFormatted} (${comp.diffPercentFormatted})
     </span>`;
   } else if (comp.status === 'STABLE') {
     compBadgeHtml = `<span class="price-comp-badge comp-stable" title="${comp.message}">
-      <span class="comp-icon">=</span> Stabil
+      <span class="comp-icon">=</span> Stabil (0%)
     </span>`;
   } else {
     compBadgeHtml = `<span class="price-comp-badge comp-new">Item Baru</span>`;
   }
 
-  // Info diskon jika ada
+  // Info diskon jika ada (Prioritas 3)
   let discountHtml = '';
   if (disc.hasDiscount) {
     discountHtml = `
@@ -315,21 +315,38 @@ function renderCartItemRow(item, index) {
           <span class="subtotal-val">${formatRupiah(item.subtotal)}</span>
         </div>
 
-        <button 
-          type="button" 
-          class="btn-delete-item" 
-          data-id="${item.id}" 
-          data-name="${escapeHtml(item.name)}" 
-          title="Hapus ${escapeHtml(item.name)}"
-          aria-label="Hapus item ${escapeHtml(item.name)}"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            <line x1="10" y1="11" x2="10" y2="17"></line>
-            <line x1="14" y1="11" x2="14" y2="17"></line>
-          </svg>
-        </button>
+        <div class="item-actions-group">
+          <!-- Tombol Edit Item (Prioritas 1) -->
+          <button 
+            type="button" 
+            class="btn-edit-item" 
+            data-id="${item.id}" 
+            title="Edit ${escapeHtml(item.name)}"
+            aria-label="Edit item ${escapeHtml(item.name)}"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+
+          <!-- Tombol Hapus Baris Item (Prioritas 1 & F-06A) -->
+          <button 
+            type="button" 
+            class="btn-delete-item" 
+            data-id="${item.id}" 
+            data-name="${escapeHtml(item.name)}" 
+            title="Hapus ${escapeHtml(item.name)}"
+            aria-label="Hapus item ${escapeHtml(item.name)}"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </li>
   `;
@@ -366,7 +383,7 @@ function updateFormPreview() {
 
   let htmlParts = [];
 
-  // Preview Diskon Kompound (SRS F-03)
+  // Preview Diskon Kompound (SRS F-03 & Prioritas 3)
   if (price > 0 && discountStr) {
     const disc = calculateDiscount(price, discountStr);
     if (disc.hasDiscount) {
@@ -380,28 +397,28 @@ function updateFormPreview() {
     }
   }
 
-  // Preview Komparasi Fluktuasi Harga (SRS F-04)
+  // Preview Komparasi Fluktuasi Harga (SRS F-04 & Prioritas 4)
   if (name && price > 0) {
     const comp = comparePrice(name, price, state.storeName, '2026-09-26', state.customHistory);
     if (comp.status === 'UP') {
       htmlParts.push(`
         <div class="preview-item preview-up">
           <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>↑ ${comp.diffFormatted}</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
+          <strong>↑ ${comp.diffFormatted} (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     } else if (comp.status === 'DOWN') {
       htmlParts.push(`
         <div class="preview-item preview-down">
           <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>↓ ${comp.diffFormatted}</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
+          <strong>↓ ${comp.diffFormatted} (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Bulan lalu: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     } else if (comp.status === 'STABLE') {
       htmlParts.push(`
         <div class="preview-item preview-stable">
           <span class="preview-tag">Komparasi Bulan Lalu:</span>
-          <strong>= Stabil</strong> (Harga sama: ${formatRupiah(comp.historicalPrice)})
+          <strong>= Stabil (${comp.diffPercentFormatted} • ${comp.direction})</strong> (Harga sama: ${formatRupiah(comp.historicalPrice)})
         </div>
       `);
     }
@@ -417,7 +434,7 @@ function updateFormPreview() {
 }
 
 /**
- * Menangani penambahan item belanja dari form (SRS F-01, F-02, F-03, F-04)
+ * Menangani penambahan item belanja dari form (Prioritas 1 & 6)
  */
 function handleAddItem(event) {
   event.preventDefault();
@@ -429,7 +446,7 @@ function handleAddItem(event) {
   const priceRaw = dom.itemPriceInput?.value;
   const discountInput = dom.itemDiscountInput?.value.trim() || '';
 
-  // VALIDASI FORM WAJIB (SRS F-01 & Skenario Uji Lab 1):
+  // VALIDASI INPUT & PENANGANAN ERROR (Prioritas 6):
   // 1. Nama barang tidak boleh kosong
   if (!name) {
     showToast('Nama barang wajib diisi!', 'warning');
@@ -440,7 +457,7 @@ function handleAddItem(event) {
   // 2. Harga tidak boleh negatif atau 0
   const price = parseFloat(priceRaw);
   if (isNaN(price) || price <= 0) {
-    showToast('Harga barang harus angka positif dan lebih dari 0! (Tidak boleh minus atau kosong)', 'error');
+    showToast('Harga barang harus berupa angka positif lebih dari 0! (Tidak boleh minus atau kosong)', 'error');
     dom.itemPriceInput?.focus();
     return;
   }
@@ -452,6 +469,9 @@ function handleAddItem(event) {
     dom.itemQtyInput?.focus();
     return;
   }
+
+  // Catat harga ke Price Tracker history
+  state.customHistory = recordPriceHistory(name, price, state.storeName, state.shoppingDate, state.customHistory);
 
   // Buat objek item baru
   const newItem = {
@@ -480,9 +500,9 @@ function handleAddItem(event) {
 }
 
 /**
- * Menangani klik kontrol kuantitas (+ / -) dan tombol hapus (SRS F-02 & F-06A)
+ * Menangani klik kontrol kuantitas (+ / -), tombol edit, dan tombol hapus (Prioritas 1 & 2)
  */
-function handleCartListClick(event) {
+async function handleCartListClick(event) {
   const target = event.target;
 
   // Tombol Plus (+) Kuantitas
@@ -507,13 +527,40 @@ function handleCartListClick(event) {
         item.quantity -= 1;
         render();
       } else {
-        showToast('Kuantitas minimal adalah 1. Gunakan tombol hapus untuk membuang item.', 'info');
+        showToast('Kuantitas minimal adalah 1. Gunakan tombol hapus jika ingin membuang item.', 'info');
       }
     }
     return;
   }
 
-  // Tombol Hapus Baris Item (SRS F-06A)
+  // Tombol Edit Item (Prioritas 1: Edit Barang)
+  const btnEdit = target.closest('.btn-edit-item');
+  if (btnEdit) {
+    const id = btnEdit.getAttribute('data-id');
+    const item = state.items.find(i => i.id === id);
+    if (item) {
+      const updated = await showEditItemModal(item);
+      if (updated) {
+        // Simpan harga sebelumnya ke histori untuk pelacakan price tracker
+        state.customHistory = recordPriceHistory(
+          item.name,
+          item.originalPrice,
+          state.storeName,
+          '2026-09-26',
+          state.customHistory
+        );
+        const index = state.items.findIndex(i => i.id === id);
+        if (index !== -1) {
+          state.items[index] = updated;
+          render();
+          showToast(`Item "${updated.name}" berhasil diperbarui`, 'success');
+        }
+      }
+    }
+    return;
+  }
+
+  // Tombol Hapus Baris Item (Prioritas 1: Hapus Barang)
   const btnDelete = target.closest('.btn-delete-item');
   if (btnDelete) {
     const id = btnDelete.getAttribute('data-id');
@@ -544,7 +591,6 @@ function handleQtyInputChange(event) {
       item.quantity = val;
       render();
     } else {
-      // Revert ke nilai valid sebelumnya jika input invalid
       target.value = item.quantity;
       showToast('Kuantitas harus angka minimal 1!', 'warning');
     }
@@ -552,14 +598,13 @@ function handleQtyInputChange(event) {
 }
 
 /**
- * Memuat Skenario Uji DT2 Lengkap untuk kemudahan demonstrasi guru di laboratorium
+ * Memuat Skenario Uji DT2 Lengkap untuk kemudahan demonstrasi
  */
 function loadScenarioDT2() {
   state.storeName = DEFAULT_STORE;
   state.shoppingDate = DEFAULT_DATE;
-  state.budgetLimit = 100000; // Skenario uji budget warning Rp 100.000
+  state.budgetLimit = 100000;
 
-  // Siapkan 5 item uji SSOT DT2
   state.items = [
     {
       id: 'dt2_beras',
@@ -616,12 +661,12 @@ function loadScenarioDT2() {
  * Menghubungkan seluruh event listener antarmuka pengguna
  */
 function bindEventListeners() {
-  // 1. Form submit tambah item (SRS F-01)
+  // 1. Form submit tambah item (SRS F-01 & Prioritas 1)
   if (dom.itemForm) {
     dom.itemForm.addEventListener('submit', handleAddItem);
   }
 
-  // 2. Realtime preview input form (SRS F-03 & F-04)
+  // 2. Realtime preview input form (Prioritas 3 & 4)
   const previewInputs = [dom.itemNameInput, dom.itemPriceInput, dom.itemDiscountInput];
   previewInputs.forEach(input => {
     if (input) {
@@ -629,13 +674,13 @@ function bindEventListeners() {
     }
   });
 
-  // 3. Kontrol kuantitas dan hapus di daftar keranjang (SRS F-02 & F-06A)
+  // 3. Kontrol kuantitas, edit, dan hapus di daftar keranjang (Prioritas 1 & 2)
   if (dom.cartItemsList) {
     dom.cartItemsList.addEventListener('click', handleCartListClick);
     dom.cartItemsList.addEventListener('change', handleQtyInputChange);
   }
 
-  // 4. Ubah limit saldo dompet (SRS F-05)
+  // 4. Ubah limit saldo dompet (Prioritas 5)
   if (dom.budgetLimitInput) {
     dom.budgetLimitInput.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
@@ -646,7 +691,7 @@ function bindEventListeners() {
     });
   }
 
-  // 5. Preset chips limit saldo dompet
+  // 5. Preset chips limit saldo dompet (Prioritas 5)
   const budgetChips = document.querySelectorAll('.chip-budget');
   budgetChips.forEach(chip => {
     chip.addEventListener('click', () => {
@@ -676,7 +721,7 @@ function bindEventListeners() {
     });
   }
 
-  // 7. Tombol Reset / Hapus Seluruh Keranjang dengan Modal Konfirmasi Aman (UX Skenario 8)
+  // 7. Tombol Reset / Hapus Seluruh Keranjang dengan Modal Konfirmasi Aman
   if (dom.btnClearCart) {
     dom.btnClearCart.addEventListener('click', async () => {
       if (state.items.length === 0) {
@@ -730,7 +775,7 @@ function bindEventListeners() {
     });
   }
 
-  // 10. Inisialisasi Sinkronisasi Realtime Antar-Tab (SRS F-06B ready)
+  // 10. Inisialisasi Sinkronisasi Realtime Antar-Tab
   initLocalSync((updatedState) => {
     state = updatedState;
     render();

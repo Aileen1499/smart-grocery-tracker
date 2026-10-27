@@ -712,6 +712,32 @@ body {
   color: var(--primary-dark);
 }
 
+.item-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-edit-item {
+  width: var(--min-touch-target);
+  height: var(--min-touch-target);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-edit-item:hover, .btn-edit-item:active {
+  background-color: var(--primary-soft);
+  color: var(--primary);
+  border-color: #ccfbf1;
+}
+
 .btn-delete-item {
   width: var(--min-touch-target);
   height: var(--min-touch-target);
@@ -936,12 +962,16 @@ body {
   transition: transform 0.2s ease;
 }
 
+.modal-card.modal-card-lg {
+  max-width: 440px;
+}
+
 .modal-overlay.open .modal-card {
   transform: scale(1);
 }
 
 .modal-header {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .modal-title {
@@ -961,6 +991,7 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  margin-top: 12px;
 }
 
 .btn {
@@ -1000,6 +1031,51 @@ body {
   color: #ffffff;
 }
 
+.btn-primary:active {
+  background-color: var(--primary-dark);
+}
+
+.column-left, .column-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ==========================================================================
+   Tampilan Responsif Desktop & Tablet (Prioritas 7)
+   ========================================================================== */
+@media screen and (min-width: 860px) {
+  body {
+    background-color: #e2e8f0;
+    padding-bottom: 80px;
+  }
+
+  .app-container {
+    max-width: 1040px;
+    margin: 24px auto;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+
+  .app-header {
+    padding: 20px 24px;
+  }
+
+  .app-content {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    gap: 20px;
+    padding: 20px 24px;
+    align-items: start;
+  }
+
+  .sticky-inner {
+    max-width: 1040px;
+    padding: 12px 24px;
+  }
+}
+
 /* ==========================================================================
    Responsivitas Mobile 375px & Utility
    ========================================================================== */
@@ -1023,3 +1099,4 @@ body {
     font-size: 11.5px;
   }
 }
+

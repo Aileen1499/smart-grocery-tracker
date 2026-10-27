@@ -35,8 +35,9 @@
     </header>
 
     <main class="app-content">
-      <!-- 1. Card Sesi Belanja: Toko & Tanggal (SRS F-01) -->
-      <section class="card session-card" aria-label="Sesi Belanja">
+      <div class="column-left">
+        <!-- 1. Card Sesi Belanja: Toko & Tanggal (SRS F-01) -->
+        <section class="card session-card" aria-label="Sesi Belanja">
         <div class="card-header">
           <h2 class="card-title">🏪 Lokasi &amp; Tanggal Belanja</h2>
         </div>
@@ -195,7 +196,9 @@
           </div>
         </form>
       </section>
+      </div>
 
+      <div class="column-right">
       <!-- 4. Daftar Keranjang Belanja (SRS F-02, F-04, F-06A) -->
       <section class="card cart-card" aria-label="Keranjang Belanja">
         <div class="card-header">
@@ -223,6 +226,7 @@
           <!-- Item kartu dirender dinamis oleh JS -->
         </ul>
       </section>
+      </div>
     </main>
 
     <!-- Sticky Bottom Bar Ringkasan (Ergonomi Mobile Jempol) -->

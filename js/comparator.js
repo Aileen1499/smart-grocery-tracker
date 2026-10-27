@@ -1,6 +1,7 @@
 /**
- * SRS F-04: Modul Komparasi Fluktuasi Harga Realtime
- * Membandingkan harga input saat ini dengan harga histori bulan lalu di toko yang sama
+ * SRS F-04: Modul Komparasi Fluktuasi Harga Realtime (Price Tracker)
+ * Menyimpan dan membandingkan harga input saat ini dengan harga histori bulan lalu di toko yang sama,
+ * serta menampilkan perubahan nominal, persentase, dan arah perubahan.
  */
 
 import { HISTORICAL_PRICES, DEFAULT_STORE, HISTORICAL_DATE } from './history-data.js';
@@ -10,7 +11,7 @@ import { formatRupiah } from './calculator.js';
  * Normalisasi string nama barang untuk pencarian fleksibel
  * Contoh: "Beras Rojolele 5kg" -> "beras rojolele 5kg"
  */
-function normalizeName(str) {
+export function normalizeName(str) {
   return String(str || '')
     .toLowerCase()
     .replace(/[^\w\s]/g, '')
@@ -71,13 +72,53 @@ export function findHistoricalPrice(itemName, storeName = DEFAULT_STORE, referen
 }
 
 /**
- * Membandingkan harga saat ini dengan harga histori bulan lalu (SRS F-04)
+ * Menyimpan harga barang ke catatan histori dinamis (Price Tracker)
+ * 
+ * @param {string} itemName Nama barang
+ * @param {number} price Harga satuan
+ * @param {string} storeName Nama toko
+ * @param {string} date Tanggal pencatatan
+ * @param {Object} customHistory Object custom history dari storage
+ * @returns {Object} Updated custom history
+ */
+export function recordPriceHistory(itemName, price, storeName = DEFAULT_STORE, date = HISTORICAL_DATE, customHistory = {}) {
+  const updatedHistory = { ...customHistory };
+  if (!updatedHistory[storeName]) {
+    updatedHistory[storeName] = {};
+  }
+  if (!updatedHistory[storeName][date]) {
+    updatedHistory[storeName][date] = [];
+  }
+
+  const normInput = normalizeName(itemName);
+  const existingIndex = updatedHistory[storeName][date].findIndex(
+    item => normalizeName(item.name) === normInput
+  );
+
+  const record = {
+    name: itemName,
+    price: Math.max(0, Number(price) || 0),
+    recordedAt: Date.now()
+  };
+
+  if (existingIndex >= 0) {
+    updatedHistory[storeName][date][existingIndex] = record;
+  } else {
+    updatedHistory[storeName][date].push(record);
+  }
+
+  return updatedHistory;
+}
+
+/**
+ * Membandingkan harga saat ini dengan harga histori bulan lalu (SRS F-04 & Prioritas 4)
+ * Menghitung perubahan nominal, persentase, dan arah perubahan.
  *
- * Status:
- * - 'UP'     : Harga Naik -> Panah Merah Naik (↑), nominal selisih (+Rp X.XXX)
- * - 'DOWN'   : Harga Turun -> Panah Hijau Turun (↓), nominal hemat (-Rp X.XXX)
- * - 'STABLE' : Harga Stabil -> Tanda Setara Abu-abu (=), harga tetap stabil
- * - 'NEW'    : Item baru (belum ada data histori pembanding)
+ * Status & Arah:
+ * - 'UP' / 'NAIK'       : Panah Merah Naik (↑), nominal (+Rp X.XXX), persentase (+Y.Y%)
+ * - 'DOWN' / 'TURUN'   : Panah Hijau Turun (↓), nominal (-Rp X.XXX), persentase (-Y.Y%)
+ * - 'STABLE' / 'STABIL' : Tanda Setara Abu-abu (=), nominal (Rp 0), persentase (0%)
+ * - 'NEW' / 'BARU'      : Item baru
  *
  * @param {string} itemName Nama barang
  * @param {number} currentPrice Harga satuan yang diinput sekarang
@@ -90,36 +131,48 @@ export function comparePrice(itemName, currentPrice, storeName = DEFAULT_STORE, 
   const current = Math.max(0, Number(currentPrice) || 0);
   const hist = findHistoricalPrice(itemName, storeName, referenceDate, customHistory);
 
-  if (!hist || typeof hist.price !== 'number') {
+  if (!hist || typeof hist.price !== 'number' || hist.price <= 0) {
     return {
       status: 'NEW',
+      direction: 'BARU',
       trend: 'new',
       symbol: '✨',
       iconClass: 'trend-new',
       colorClass: 'badge-new',
       diff: 0,
       diffFormatted: 'Item Baru',
+      diffPercent: 0,
+      diffPercentFormatted: 'Baru',
+      previousPrice: null,
+      currentPrice: current,
       historicalPrice: null,
-      message: 'Item baru / belum ada histori bulan lalu',
+      message: 'Item baru / belum ada histori pembanding',
       matchedItem: null
     };
   }
 
   const pastPrice = hist.price;
   const diff = current - pastPrice;
+  const rawPercent = (diff / pastPrice) * 100;
+  const diffPercent = Math.round(Math.abs(rawPercent) * 10) / 10;
 
   if (diff > 0) {
     // Harga Naik
     return {
       status: 'UP',
+      direction: 'NAIK',
       trend: 'up',
       symbol: '↑',
       iconClass: 'trend-up',
       colorClass: 'badge-danger',
       diff: diff,
       diffFormatted: `+${formatRupiah(diff)}`,
+      diffPercent: diffPercent,
+      diffPercentFormatted: `+${diffPercent}%`,
+      previousPrice: pastPrice,
+      currentPrice: current,
       historicalPrice: pastPrice,
-      message: `Harga Naik (+${formatRupiah(diff)} dari bulan lalu: ${formatRupiah(pastPrice)})`,
+      message: `Harga Naik (+${formatRupiah(diff)} / +${diffPercent}% dari bulan lalu: ${formatRupiah(pastPrice)})`,
       matchedItem: hist.name
     };
   } else if (diff < 0) {
@@ -127,26 +180,36 @@ export function comparePrice(itemName, currentPrice, storeName = DEFAULT_STORE, 
     const absDiff = Math.abs(diff);
     return {
       status: 'DOWN',
+      direction: 'TURUN',
       trend: 'down',
       symbol: '↓',
       iconClass: 'trend-down',
       colorClass: 'badge-success',
       diff: diff,
       diffFormatted: `-${formatRupiah(absDiff)}`,
+      diffPercent: diffPercent,
+      diffPercentFormatted: `-${diffPercent}%`,
+      previousPrice: pastPrice,
+      currentPrice: current,
       historicalPrice: pastPrice,
-      message: `Harga Turun (-${formatRupiah(absDiff)} lebih hemat dari bulan lalu: ${formatRupiah(pastPrice)})`,
+      message: `Harga Turun (-${formatRupiah(absDiff)} / -${diffPercent}% lebih hemat dari bulan lalu: ${formatRupiah(pastPrice)})`,
       matchedItem: hist.name
     };
   } else {
     // Harga Stabil
     return {
       status: 'STABLE',
+      direction: 'STABIL',
       trend: 'stable',
       symbol: '=',
       iconClass: 'trend-stable',
       colorClass: 'badge-neutral',
       diff: 0,
       diffFormatted: 'Stabil',
+      diffPercent: 0,
+      diffPercentFormatted: '0%',
+      previousPrice: pastPrice,
+      currentPrice: current,
       historicalPrice: pastPrice,
       message: `Harga Stabil (Sama persis dengan bulan lalu: ${formatRupiah(pastPrice)})`,
       matchedItem: hist.name
