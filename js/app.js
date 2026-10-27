@@ -798,6 +798,7 @@ async function handleCartListClick(event) {
       const index = state.items.findIndex(i => i.id === id);
       if (index !== -1) {
         state.items.splice(index, 1);
+        state.lastUpdated = Date.now();
         render(true);
         showToast(`Item "${name}" berhasil dihapus dari keranjang`, 'info');
       }
@@ -1001,6 +1002,7 @@ function bindEventListeners() {
       });
       if (confirmed) {
         state.items = [];
+        state.lastUpdated = Date.now();
         render(true);
         showToast('Keranjang belanja berhasil dikosongkan.', 'info');
       }

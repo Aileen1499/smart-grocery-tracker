@@ -99,24 +99,36 @@ export function showConfirmModal({
 
     document.body.appendChild(overlay);
 
-    const cleanup = (result) => {
+    let resolved = false;
+    const doResolve = (result) => {
+      if (resolved) return;
+      resolved = true;
+      resolve(result);
       overlay.classList.add('closing');
       setTimeout(() => {
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        resolve(result);
-      }, 200);
+      }, 150);
     };
 
-    overlay.querySelector('.modal-btn-confirm').addEventListener('click', () => cleanup(true));
-    overlay.querySelector('.modal-btn-cancel').addEventListener('click', () => cleanup(false));
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) cleanup(false);
+    const confirmBtn = overlay.querySelector('.modal-btn-confirm');
+    const cancelBtn = overlay.querySelector('.modal-btn-cancel');
+
+    confirmBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      doResolve(true);
     });
 
-    // Animasi tampil
-    requestAnimationFrame(() => {
-      overlay.classList.add('open');
+    cancelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      doResolve(false);
     });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) doResolve(false);
+    });
+
+    // Tampilkan modal secara langsung dan aktifkan animasi
+    overlay.classList.add('open');
   });
 }
 

@@ -17,12 +17,23 @@ let currentSessionId = DEFAULT_SESSION_ID;
 let isUpdatingFromCloud = false;
 let realtimeWs = null;
 let bridgeRetryTimeout = null;
+let bridgePolled = false;
 
 /**
  * Normalisasi dan terapkan payload cloud ke aplikasi
  */
 function applyCloudPayload(payload, onCloudDataCallback) {
   if (!payload) return;
+
+  const localState = loadState();
+  const cloudTime = Number(payload.lastUpdated) || 0;
+  const localTime = Number(localState.lastUpdated) || 0;
+
+  // Jika data lokal lebih baru daripada pesan cloud (misal troli baru saja dikosongkan), abaikan
+  if (cloudTime && localTime && cloudTime < localTime) {
+    return;
+  }
+
   isUpdatingFromCloud = true;
 
   const normalizedState = {
@@ -31,7 +42,7 @@ function applyCloudPayload(payload, onCloudDataCallback) {
     budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
     items: Array.isArray(payload.items) ? payload.items : [],
     customHistory: payload.customHistory || {},
-    lastUpdated: payload.lastUpdated || Date.now(),
+    lastUpdated: cloudTime || Date.now(),
     updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
   };
 
@@ -47,39 +58,11 @@ function applyCloudPayload(payload, onCloudDataCallback) {
 }
 
 /**
- * Inisialisasi Realtime Cloud Bridge (Port 443 WSS & SSE)
- * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live
+ * Membuka koneksi WebSocket ke Cloud Bridge
  */
-function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeCallback) {
+function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback) {
   if (typeof window === 'undefined') return;
 
-  const cleanSession = (sessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
-  const topic = `sgt_session_${cleanSession}`;
-
-  // 1. Ambil data terbaru dari cloud jika ada (Tahan F5 antar perangkat)
-  try {
-    fetch(`https://ntfy.sh/${topic}/json?poll=1`)
-      .then(res => res.text())
-      .then(text => {
-        if (!text || !text.trim()) return;
-        const lines = text.trim().split('\n');
-        for (let i = lines.length - 1; i >= 0; i--) {
-          try {
-            const entry = JSON.parse(lines[i]);
-            if (entry.event === 'message' && entry.message) {
-              const payload = JSON.parse(entry.message);
-              if (payload && (payload.sessionId === currentSessionId || !payload.sessionId)) {
-                applyCloudPayload(payload, onCloudDataCallback);
-                break;
-              }
-            }
-          } catch (e) {}
-        }
-      })
-      .catch(() => {});
-  } catch (e) {}
-
-  // 2. Buka jalur WebSocket Realtime WSS Port 443
   try {
     if (realtimeWs) {
       try { realtimeWs.close(); } catch (e) {}
@@ -100,7 +83,7 @@ function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeC
           isCloud: true,
           label: 'Cloud Realtime (Live)',
           badgeClass: 'badge-live',
-          details: `Tersinkron multi-device di sesi: ${cleanSession}`
+          details: `Tersinkron multi-device di sesi: ${topic}`
         });
       }
     };
@@ -119,7 +102,7 @@ function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeC
 
     realtimeWs.onclose = () => {
       bridgeRetryTimeout = setTimeout(() => {
-        initRealtimeCloudBridge(currentSessionId, onCloudDataCallback, onStatusChangeCallback);
+        connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
       }, 3000);
     };
 
@@ -129,6 +112,46 @@ function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeC
   } catch (err) {
     console.warn('Gagal membuka realtime cloud bridge:', err);
   }
+}
+
+/**
+ * Inisialisasi Realtime Cloud Bridge (Port 443 WSS & SSE)
+ * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live
+ */
+function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeCallback) {
+  if (typeof window === 'undefined') return;
+
+  const cleanSession = (sessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const topic = `sgt_session_${cleanSession}`;
+
+  // 1. Ambil data terbaru dari cloud jika ada (Hanya saat cold start pertama kali)
+  if (!bridgePolled) {
+    bridgePolled = true;
+    try {
+      fetch(`https://ntfy.sh/${topic}/json?poll=1`)
+        .then(res => res.text())
+        .then(text => {
+          if (!text || !text.trim()) return;
+          const lines = text.trim().split('\n');
+          for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+              const entry = JSON.parse(lines[i]);
+              if (entry.event === 'message' && entry.message) {
+                const payload = JSON.parse(entry.message);
+                if (payload && (payload.sessionId === currentSessionId || !payload.sessionId)) {
+                  applyCloudPayload(payload, onCloudDataCallback);
+                  break;
+                }
+              }
+            } catch (e) {}
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  // 2. Hubungkan jalur WebSocket Realtime WSS Port 443
+  connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
 }
 
 /**
@@ -209,6 +232,15 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
       if (docSnap.exists()) {
         const cloudData = docSnap.data();
 
+        const localState = loadState();
+        const cloudTime = Number(cloudData.lastUpdated) || 0;
+        const localTime = Number(localState.lastUpdated) || 0;
+
+        // Jangan timpa state lokal jika state lokal lebih baru daripada cloud
+        if (cloudTime && localTime && cloudTime < localTime) {
+          return;
+        }
+
         // Tandai agar tidak terjadi push looping saat merender ulang dari cloud
         isUpdatingFromCloud = true;
 
@@ -218,7 +250,7 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
           budgetLimit: typeof cloudData.walletLimit === 'number' ? cloudData.walletLimit : (cloudData.budgetLimit || 350000),
           items: Array.isArray(cloudData.items) ? cloudData.items : [],
           customHistory: cloudData.customHistory || {},
-          lastUpdated: cloudData.lastUpdated || Date.now(),
+          lastUpdated: cloudTime || Date.now(),
           updatedByDevice: cloudData.updatedByDevice || 'Cloud Firestore'
         };
 
@@ -306,52 +338,53 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
   // Jangan kirim balik jika update berasal dari snapshot cloud yang baru tiba
   if (isUpdatingFromCloud) return true;
 
+  const now = Date.now();
+  state.lastUpdated = now;
+
   // Selalu simpan ke LocalStorage terlebih dahulu (Offline-First Resilient)
   saveState(state);
 
-  if (!db || initError) return false;
+  const cleanSession = (sessionId || currentSessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const isMobile = typeof navigator !== 'undefined' && /Mobile|Android|iPhone/i.test(navigator.userAgent);
+
+  const payload = {
+    sessionId: sessionId || currentSessionId,
+    storeLocation: state.storeName || 'Lotte Mart Grocery - Puri Indah',
+    storeName: state.storeName || 'Lotte Mart Grocery - Puri Indah',
+    shoppingDate: state.shoppingDate || '2026-10-26',
+    walletLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
+    budgetLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
+    items: (state.items || []).map(item => ({
+      id: item.id || ('item_' + Math.random().toString(36).substr(2, 5)),
+      name: item.name || '',
+      category: item.category || 'Lain-lain',
+      unit: item.unit || 'pcs',
+      quantity: Number(item.quantity) || 1,
+      originalPrice: Number(item.originalPrice) || 0,
+      discountInput: item.discountInput || '',
+      finalUnitPrice: Number(item.finalUnitPrice) || Number(item.originalPrice) || 0,
+      subtotal: Number(item.subtotal) || 0
+    })),
+    customHistory: state.customHistory || {},
+    totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),
+    lastUpdated: now,
+    updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
+  };
+
+  // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
+  try {
+    if (typeof window !== 'undefined' && window.fetch) {
+      fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
+  if (!db || initError) return true;
 
   try {
     const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
-    const isMobile = typeof navigator !== 'undefined' && /Mobile|Android|iPhone/i.test(navigator.userAgent);
-
-    const payload = {
-      sessionId: sessionId || currentSessionId,
-      storeLocation: state.storeName || 'Lotte Mart Grocery - Puri Indah',
-      storeName: state.storeName || 'Lotte Mart Grocery - Puri Indah',
-      shoppingDate: state.shoppingDate || '2026-10-26',
-      walletLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
-      budgetLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
-      items: (state.items || []).map(item => ({
-        id: item.id || ('item_' + Math.random().toString(36).substr(2, 5)),
-        name: item.name || '',
-        category: item.category || 'Lain-lain',
-        unit: item.unit || 'pcs',
-        quantity: Number(item.quantity) || 1,
-        originalPrice: Number(item.originalPrice) || 0,
-        discountInput: item.discountInput || '',
-        finalUnitPrice: Number(item.finalUnitPrice) || Number(item.originalPrice) || 0,
-        subtotal: Number(item.subtotal) || 0
-      })),
-      customHistory: state.customHistory || {},
-      totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),
-      lastUpdated: Date.now(),
-      updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
-    };
-
-    // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
-    const cleanSession = (sessionId || currentSessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
-    try {
-      if (typeof window !== 'undefined' && window.fetch) {
-        fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        }).catch(() => {});
-      }
-    } catch (e) {}
-
-    if (!db || initError) return true;
-
     await setDoc(docRef, payload, { merge: true });
     return true;
   } catch (err) {

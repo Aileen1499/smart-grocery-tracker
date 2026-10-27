@@ -60,9 +60,11 @@ export function saveState(state) {
     if (typeof window === 'undefined' || !window.localStorage) {
       return false;
     }
+    const now = Date.now();
+    state.lastUpdated = now;
     const dataToSave = {
       ...state,
-      lastUpdated: Date.now()
+      lastUpdated: now
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
 
