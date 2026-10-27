@@ -15,81 +15,119 @@ export const SESSION_STORAGE_KEY = 'smart_grocery_session_id';
 let activeUnsubscribe = null;
 let currentSessionId = DEFAULT_SESSION_ID;
 let isUpdatingFromCloud = false;
-let mqttClient = null;
+let realtimeWs = null;
+let bridgeRetryTimeout = null;
 
 /**
- * Inisialisasi Realtime Cloud Relay (WebSocket Broker)
+ * Normalisasi dan terapkan payload cloud ke aplikasi
+ */
+function applyCloudPayload(payload, onCloudDataCallback) {
+  if (!payload) return;
+  isUpdatingFromCloud = true;
+
+  const normalizedState = {
+    storeName: payload.storeLocation || payload.storeName || 'Lotte Mart Grocery - Puri Indah',
+    shoppingDate: payload.shoppingDate || '2026-10-26',
+    budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
+    items: Array.isArray(payload.items) ? payload.items : [],
+    customHistory: payload.customHistory || {},
+    lastUpdated: payload.lastUpdated || Date.now(),
+    updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
+  };
+
+  saveState(normalizedState);
+
+  if (typeof onCloudDataCallback === 'function') {
+    onCloudDataCallback(normalizedState);
+  }
+
+  setTimeout(() => {
+    isUpdatingFromCloud = false;
+  }, 100);
+}
+
+/**
+ * Inisialisasi Realtime Cloud Bridge (Port 443 WSS & SSE)
  * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live
  */
-function initRealtimeCloudRelay(sessionId, onCloudDataCallback, onStatusChangeCallback) {
-  if (typeof window === 'undefined' || !window.mqtt) return;
+function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeCallback) {
+  if (typeof window === 'undefined') return;
 
+  const cleanSession = (sessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const topic = `sgt_session_${cleanSession}`;
+
+  // 1. Ambil data terbaru dari cloud jika ada (Tahan F5 antar perangkat)
   try {
-    if (mqttClient) {
-      try { mqttClient.end(true); } catch (e) {}
-      mqttClient = null;
+    fetch(`https://ntfy.sh/${topic}/json?poll=1`)
+      .then(res => res.text())
+      .then(text => {
+        if (!text || !text.trim()) return;
+        const lines = text.trim().split('\n');
+        for (let i = lines.length - 1; i >= 0; i--) {
+          try {
+            const entry = JSON.parse(lines[i]);
+            if (entry.event === 'message' && entry.message) {
+              const payload = JSON.parse(entry.message);
+              if (payload && (payload.sessionId === currentSessionId || !payload.sessionId)) {
+                applyCloudPayload(payload, onCloudDataCallback);
+                break;
+              }
+            }
+          } catch (e) {}
+        }
+      })
+      .catch(() => {});
+  } catch (e) {}
+
+  // 2. Buka jalur WebSocket Realtime WSS Port 443
+  try {
+    if (realtimeWs) {
+      try { realtimeWs.close(); } catch (e) {}
+      realtimeWs = null;
     }
 
-    const topic = `smart_grocery_sessions_${sessionId}`;
-    const clientId = 'pwa_' + Math.random().toString(16).substr(2, 8);
+    if (bridgeRetryTimeout) {
+      clearTimeout(bridgeRetryTimeout);
+      bridgeRetryTimeout = null;
+    }
 
-    mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
-      clientId,
-      clean: true,
-      connectTimeout: 5000,
-      reconnectPeriod: 3000
-    });
+    realtimeWs = new WebSocket(`wss://ntfy.sh/${topic}/ws`);
 
-    mqttClient.on('connect', () => {
-      mqttClient.subscribe(topic, { qos: 0 });
+    realtimeWs.onopen = () => {
       if (typeof onStatusChangeCallback === 'function') {
         onStatusChangeCallback({
           connected: true,
           isCloud: true,
           label: 'Cloud Realtime (Live)',
           badgeClass: 'badge-live',
-          details: `Tersinkron multi-device di sesi: ${sessionId}`
+          details: `Tersinkron multi-device di sesi: ${cleanSession}`
         });
       }
-    });
+    };
 
-    mqttClient.on('message', (t, msg) => {
-      if (t === topic) {
-        try {
-          const payload = JSON.parse(msg.toString());
-          if (payload && payload.sessionId === currentSessionId && !isUpdatingFromCloud) {
-            isUpdatingFromCloud = true;
-            const normalizedState = {
-              storeName: payload.storeLocation || payload.storeName || 'Lotte Mart Grocery - Puri Indah',
-              shoppingDate: payload.shoppingDate || '2026-10-26',
-              budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
-              items: Array.isArray(payload.items) ? payload.items : [],
-              customHistory: payload.customHistory || {},
-              lastUpdated: payload.lastUpdated || Date.now(),
-              updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
-            };
-
-            saveState(normalizedState);
-
-            if (typeof onCloudDataCallback === 'function') {
-              onCloudDataCallback(normalizedState);
-            }
-
-            setTimeout(() => {
-              isUpdatingFromCloud = false;
-            }, 100);
-          }
-        } catch (e) {
-          console.warn('Realtime parse error:', e);
+    realtimeWs.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'message' && data.message && !isUpdatingFromCloud) {
+          const payload = JSON.parse(data.message);
+          applyCloudPayload(payload, onCloudDataCallback);
         }
+      } catch (err) {
+        console.warn('Realtime message parse note:', err);
       }
-    });
+    };
 
-    mqttClient.on('error', (err) => {
-      console.warn('Realtime relay note:', err);
-    });
+    realtimeWs.onclose = () => {
+      bridgeRetryTimeout = setTimeout(() => {
+        initRealtimeCloudBridge(currentSessionId, onCloudDataCallback, onStatusChangeCallback);
+      }, 3000);
+    };
+
+    realtimeWs.onerror = () => {
+      try { realtimeWs.close(); } catch (e) {}
+    };
   } catch (err) {
-    console.warn('Gagal menginisialisasi realtime relay:', err);
+    console.warn('Gagal membuka realtime cloud bridge:', err);
   }
 }
 
@@ -135,8 +173,8 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
 
   currentSessionId = setActiveSessionId(sessionId);
 
-  // Inisialisasi Realtime Cloud Relay (Koneksi instan antar-perangkat)
-  initRealtimeCloudRelay(currentSessionId, onCloudDataCallback, onStatusChangeCallback);
+  // Inisialisasi Realtime Cloud Bridge (Koneksi instan antar-perangkat)
+  initRealtimeCloudBridge(currentSessionId, onCloudDataCallback, onStatusChangeCallback);
 
   // Cek ketersediaan Firestore instance
   if (!db || initError) {
@@ -301,14 +339,16 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
       updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
     };
 
-    // 1. Broadcast seketika ke Realtime Relay (Aktif instan antar HP & PC di link Vercel)
-    if (mqttClient && mqttClient.connected) {
-      try {
-        mqttClient.publish(`smart_grocery_sessions_${sessionId || currentSessionId}`, JSON.stringify(payload));
-      } catch (err) {
-        console.warn('Realtime publish warning:', err);
+    // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
+    const cleanSession = (sessionId || currentSessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+    try {
+      if (typeof window !== 'undefined' && window.fetch) {
+        fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }).catch(() => {});
       }
-    }
+    } catch (e) {}
 
     if (!db || initError) return true;
 
