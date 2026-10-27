@@ -1,82 +1,261 @@
 /**
- * SRS F-06B: Modul Sinkronisasi Realtime
- * - Sinkronisasi lokal instan antar-tab/jendela (BroadcastChannel & Storage Event)
- * - Arsitektur listener realtime onSnapshot() Cloud Firestore siap pakai
+ * SRS F-06B: Modul Sinkronisasi Multi-Device Cloud Firestore Realtime
+ * - Menggunakan listener realtime onSnapshot() agar perubahan di HP langsung muncul di PC detik itu juga
+ * - Fallback kuat ke LocalStorage saat offline / sinyal lemah
+ * - Mendukung sinkronisasi multi-tab lokal melalui BroadcastChannel
  */
 
-import { SYNC_CHANNEL_NAME, STORAGE_KEY } from './storage.js';
+import { SYNC_CHANNEL_NAME, STORAGE_KEY, loadState, saveState } from './storage.js';
+import { db, initError } from './firebase-config.js';
+import { doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 
-let broadcastChannel = null;
+export const DEFAULT_SESSION_ID = 'rian_belanja_utama';
+export const SESSION_STORAGE_KEY = 'smart_grocery_session_id';
+
+let activeUnsubscribe = null;
+let currentSessionId = DEFAULT_SESSION_ID;
+let isUpdatingFromCloud = false;
 
 /**
- * Menginisialisasi listener sinkronisasi antar tab/jendela di browser lokal
- * Mengupdate tampilan di layar lain seketika tanpa perlu reload F5!
+ * Mendapatkan Session ID aktif (dari localStorage atau default)
+ */
+export function getActiveSessionId() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const saved = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (saved && saved.trim()) {
+      currentSessionId = saved.trim();
+      return currentSessionId;
+    }
+  }
+  return DEFAULT_SESSION_ID;
+}
+
+/**
+ * Menyimpan Session ID aktif
+ */
+export function setActiveSessionId(sessionId) {
+  currentSessionId = (sessionId && sessionId.trim()) ? sessionId.trim() : DEFAULT_SESSION_ID;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
+  }
+  return currentSessionId;
+}
+
+/**
+ * Inisialisasi Sinkronisasi Realtime Cloud Firestore Multi-Device dengan onSnapshot()
  * 
- * @param {Function} onSyncCallback Callback yang dipanggil saat ada update data
+ * @param {string} sessionId ID Sesi belanja bersama
+ * @param {Function} onCloudDataCallback Callback saat data cloud diterima
+ * @param {Function} onStatusChangeCallback Callback status koneksi
+ * @returns {Function} Unsubscribe listener
+ */
+export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onCloudDataCallback, onStatusChangeCallback) {
+  // Hentikan listener sebelumnya jika ada
+  if (typeof activeUnsubscribe === 'function') {
+    activeUnsubscribe();
+    activeUnsubscribe = null;
+  }
+
+  currentSessionId = setActiveSessionId(sessionId);
+
+  // Cek ketersediaan Firestore instance
+  if (!db || initError) {
+    console.warn('Firestore tidak tersedia, beralih ke Mode Lokal:', initError);
+    if (typeof onStatusChangeCallback === 'function') {
+      onStatusChangeCallback({
+        connected: false,
+        isCloud: false,
+        label: 'Mode Lokal (Offline)',
+        badgeClass: 'badge-offline',
+        details: 'Database cloud belum terhubung'
+      });
+    }
+    return () => {};
+  }
+
+  if (typeof onStatusChangeCallback === 'function') {
+    onStatusChangeCallback({
+      connected: false,
+      isCloud: false,
+      label: 'Menghubungkan...',
+      badgeClass: 'badge-connecting',
+      details: 'Membuka jalur WebSocket ke Cloud Firestore...'
+    });
+  }
+
+  try {
+    const docRef = doc(db, 'shopping_sessions', currentSessionId);
+
+    // Buka listener realtime aktif onSnapshot()
+    activeUnsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data();
+
+        // Tandai agar tidak terjadi push looping saat merender ulang dari cloud
+        isUpdatingFromCloud = true;
+
+        const normalizedState = {
+          storeName: cloudData.storeLocation || cloudData.storeName || 'Lotte Mart Grocery - Puri Indah',
+          shoppingDate: cloudData.shoppingDate || '2026-10-26',
+          budgetLimit: typeof cloudData.walletLimit === 'number' ? cloudData.walletLimit : (cloudData.budgetLimit || 350000),
+          items: Array.isArray(cloudData.items) ? cloudData.items : [],
+          customHistory: cloudData.customHistory || {},
+          lastUpdated: cloudData.lastUpdated || Date.now()
+        };
+
+        // Simpan ke LocalStorage sebagai write-through cache (Tahan F5 saat offline)
+        saveState(normalizedState);
+
+        if (typeof onCloudDataCallback === 'function') {
+          onCloudDataCallback(normalizedState);
+        }
+
+        setTimeout(() => {
+          isUpdatingFromCloud = false;
+        }, 100);
+
+        if (typeof onStatusChangeCallback === 'function') {
+          onStatusChangeCallback({
+            connected: true,
+            isCloud: true,
+            label: 'Cloud Realtime (Live)',
+            badgeClass: 'badge-live',
+            details: `Tersinkron multi-device di sesi: ${currentSessionId}`
+          });
+        }
+      } else {
+        // Dokumen belum ada di Firestore: Push state lokal saat ini untuk inisialisasi dokumen cloud
+        const localState = loadState();
+        pushStateToFirestore(localState, currentSessionId);
+
+        if (typeof onStatusChangeCallback === 'function') {
+          onStatusChangeCallback({
+            connected: true,
+            isCloud: true,
+            label: 'Cloud Terhubung',
+            badgeClass: 'badge-live',
+            details: `Sesi baru dibuat: ${currentSessionId}`
+          });
+        }
+      }
+    }, (error) => {
+      console.warn('Firestore onSnapshot listener error:', error);
+      let errorMsg = 'Mode Lokal (Offline)';
+      if (error.code === 'permission-denied') {
+        errorMsg = 'Akses Firestore Ditolak (Periksa Security Rules)';
+      }
+
+      if (typeof onStatusChangeCallback === 'function') {
+        onStatusChangeCallback({
+          connected: false,
+          isCloud: false,
+          label: errorMsg,
+          badgeClass: 'badge-offline',
+          details: error.message || 'Koneksi gagal'
+        });
+      }
+    });
+
+    return activeUnsubscribe;
+  } catch (err) {
+    console.error('Gagal membuat realtime listener:', err);
+    if (typeof onStatusChangeCallback === 'function') {
+      onStatusChangeCallback({
+        connected: false,
+        isCloud: false,
+        label: 'Mode Lokal (Offline)',
+        badgeClass: 'badge-offline',
+        details: err.message
+      });
+    }
+    return () => {};
+  }
+}
+
+/**
+ * Mendorong pembaruan data belanjaan ke Cloud Firestore
+ * Dipanggil setiap kali ada penambahan, pengubahan qty/harga, atau penghapusan item di HP/PC
+ * 
+ * @param {Object} state State belanja saat ini
+ * @param {string} sessionId ID Sesi belanja
+ * @returns {Promise<boolean>}
+ */
+export async function pushStateToFirestore(state, sessionId = currentSessionId) {
+  // Jangan kirim balik jika update berasal dari snapshot cloud yang baru tiba
+  if (isUpdatingFromCloud) return true;
+
+  // Selalu simpan ke LocalStorage terlebih dahulu (Offline-First Resilient)
+  saveState(state);
+
+  if (!db || initError) return false;
+
+  try {
+    const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
+    const isMobile = typeof navigator !== 'undefined' && /Mobile|Android|iPhone/i.test(navigator.userAgent);
+
+    const payload = {
+      sessionId: sessionId || currentSessionId,
+      storeLocation: state.storeName || 'Lotte Mart Grocery - Puri Indah',
+      storeName: state.storeName || 'Lotte Mart Grocery - Puri Indah',
+      shoppingDate: state.shoppingDate || '2026-10-26',
+      walletLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
+      budgetLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
+      items: (state.items || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        unit: item.unit,
+        quantity: item.quantity,
+        originalPrice: item.originalPrice,
+        discountInput: item.discountInput || '',
+        finalUnitPrice: item.finalUnitPrice || item.originalPrice,
+        subtotal: item.subtotal || (item.originalPrice * item.quantity)
+      })),
+      customHistory: state.customHistory || {},
+      totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),
+      lastUpdated: Date.now(),
+      updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
+    };
+
+    await setDoc(docRef, payload, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('Gagal push ke Firestore (data tetap aman di LocalStorage):', err);
+    return false;
+  }
+}
+
+/**
+ * Sinkronisasi antar-tab lokal menggunakan BroadcastChannel & Storage Event
  */
 export function initLocalSync(onSyncCallback) {
   if (typeof window === 'undefined') return;
 
-  // 1. BroadcastChannel API (Modern & Ultra Cepat)
   if (typeof BroadcastChannel !== 'undefined') {
     try {
-      broadcastChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
-      broadcastChannel.onmessage = (event) => {
-        if (event.data && event.data.type === 'STATE_UPDATED') {
+      const channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      channel.onmessage = (event) => {
+        if (event.data && event.data.type === 'STATE_UPDATED' && !isUpdatingFromCloud) {
           if (typeof onSyncCallback === 'function') {
             onSyncCallback(event.data.payload);
           }
         }
       };
     } catch (e) {
-      console.warn('BroadcastChannel tidak didukung di lingkungan ini:', e);
+      console.warn('BroadcastChannel error:', e);
     }
   }
 
-  // 2. Storage Event (Fallback standar browser multi-tab)
   window.addEventListener('storage', (event) => {
-    if (event.key === STORAGE_KEY && event.newValue) {
+    if (event.key === STORAGE_KEY && event.newValue && !isUpdatingFromCloud) {
       try {
         const parsed = JSON.parse(event.newValue);
         if (typeof onSyncCallback === 'function') {
           onSyncCallback(parsed);
         }
       } catch (err) {
-        console.error('Gagal parsing storage event:', err);
+        console.error('Storage event parsing error:', err);
       }
     }
   });
 }
-
-/**
- * Arsitektur Listener Cloud Firestore Realtime (SRS F-06B)
- * Menggunakan onSnapshot() sesuai petunjuk P15 agar perubahan di HP langsung
- * mendorong update ke PC secara live WebSocket tanpa refresh manual (F5).
- * 
- * Catatan: Siap dihubungkan ketika konfigurasi Firebase Firestore diberikan.
- *
- * @param {Object} db Firestore Database instance
- * @param {string} sessionId ID Dokumen Sesi Belanja
- * @param {Function} onDataChange Callback pembaruan data
- * @returns {Function} Unsubscribe listener
- */
-export function initFirestoreRealtimeListener(db, sessionId, onDataChange) {
-  /*
-   * Template implementasi onSnapshot resmi:
-   * 
-   * import { doc, onSnapshot } from "firebase/firestore";
-   * const docRef = doc(db, "shopping_sessions", sessionId);
-   * const unsubscribe = onSnapshot(docRef, (docSnap) => {
-   *   if (docSnap.exists()) {
-   *     const data = docSnap.data();
-   *     onDataChange(data);
-   *   }
-   * }, (error) => {
-   *   console.error("Firestore realtime listener error:", error);
-   * });
-   * return unsubscribe;
-   */
-  console.info(`Arsitektur Firestore onSnapshot siap untuk sesi: ${sessionId}`);
-  return () => {};
-}
-

@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Aturan keamanan untuk sesi belanja Smart Grocery Tracker
+    // Mengizinkan baca & tulis pada dokumen sesi belanja yang valid
+    match /shopping_sessions/{sessionId} {
+      allow read: if true;
+      allow write: if sessionId.size() > 0;
+    }
+  }
+}

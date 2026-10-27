@@ -175,6 +175,89 @@ body {
   font-weight: 500;
 }
 
+.cloud-sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.2s;
+}
+
+.cloud-sync-pill.badge-live {
+  background: rgba(16, 185, 129, 0.25);
+  color: #a7f3d0;
+  border-color: #34d399;
+}
+
+.cloud-sync-pill.badge-connecting {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+  border-color: #f59e0b;
+}
+
+.cloud-sync-pill.badge-offline {
+  background: rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.session-meta-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+}
+
+.sms-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ccfbf1;
+}
+
+.sms-label {
+  color: #99f6e4;
+  font-weight: 600;
+}
+
+.sms-session-name {
+  font-weight: 800;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.btn-sms-change {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-sms-change:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .mode-badge {
   background: rgba(255, 255, 255, 0.15);
   color: #ccfbf1;

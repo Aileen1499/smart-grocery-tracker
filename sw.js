@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smart-grocery-v1';
+const CACHE_NAME = 'smart-grocery-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
   './js/budget.js',
   './js/storage.js',
   './js/sync.js',
+  './js/firebase-config.js',
   './js/ui.js',
   './js/history-data.js'
 ];

@@ -1,7 +1,7 @@
 /**
  * Smart Grocery & Budget Safety Tracker - Native Mobile PWA Controller
  * Dirancang khusus tampilan smartphone (Mobile UI <= 430px)
- * Mendukung Bottom Navigation Bar melayang (Belanja, Riwayat Toko, Anggaran)
+ * Terintegrasi Cloud Firestore Realtime onSnapshot() & Multi-Device Sync
  */
 
 import {
@@ -30,6 +30,10 @@ import {
 } from './storage.js';
 
 import {
+  initFirestoreRealtimeSync,
+  pushStateToFirestore,
+  getActiveSessionId,
+  setActiveSessionId,
   initLocalSync
 } from './sync.js';
 
@@ -51,6 +55,7 @@ import {
 // State aplikasi aktif
 let state = getDefaultState();
 let activeTab = 'tab-belanja';
+let currentSyncStatus = { connected: false, label: 'Menghubungkan...' };
 
 // Referensi Elemen DOM
 let dom = {};
@@ -63,6 +68,12 @@ function initDomReferences() {
     // Banner bahaya
     dangerBanner: document.getElementById('danger-banner'),
     dangerBannerText: document.getElementById('danger-banner-text'),
+
+    // Cloud Sync Badge & Session Strip
+    cloudSyncBadge: document.getElementById('cloud-sync-badge'),
+    syncStatusText: document.getElementById('sync-status-text'),
+    currentSessionLabel: document.getElementById('current-session-label'),
+    btnChangeSession: document.getElementById('btn-change-session'),
 
     // Header Sesi Belanja
     storeSelect: document.getElementById('store-select'),
@@ -175,8 +186,9 @@ function recalculateAll() {
 
 /**
  * Merender seluruh tampilan UI aplikasi mobile
+ * @param {boolean} pushToCloud Apakah perubahan dipush ke Cloud Firestore (false jika dipicu oleh snapshot)
  */
-function render() {
+function render(pushToCloud = true) {
   const { grandTotal, budgetEvaluation } = recalculateAll();
 
   // 1. Render Banner Peringatan Bahaya (> 100%) (SRS F-05)
@@ -259,8 +271,14 @@ function render() {
   // 6. Render Tab 2: Riwayat Toko (Katalog Fluktuasi Harga Realtime)
   renderHistoryCatalog();
 
-  // Simpan state terkini ke LocalStorage (SRS F-06A)
+  // 7. Persistensi Lokal (Tahan F5 saat offline)
   saveState(state);
+
+  // 8. Sinkronisasi Cloud Firestore Multi-Device
+  if (pushToCloud) {
+    state.grandTotal = grandTotal;
+    pushStateToFirestore(state, getActiveSessionId());
+  }
 }
 
 /**
@@ -401,7 +419,6 @@ function renderHistoryCatalog() {
   }
 
   dom.historyCatalogContainer.innerHTML = catalog.map(catItem => {
-    // Cari apakah barang ini sudah ada di keranjang sekarang
     const inCart = state.items.find(i => 
       i.name.toLowerCase().includes(catItem.name.toLowerCase()) || 
       catItem.name.toLowerCase().includes(i.name.toLowerCase())
@@ -458,6 +475,18 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+/**
+ * Mengupdate status indikator badge sinkronisasi Cloud Firestore di header
+ */
+function updateSyncStatusBadge(status) {
+  currentSyncStatus = status;
+  if (!dom.cloudSyncBadge || !dom.syncStatusText) return;
+
+  dom.syncStatusText.textContent = status.label;
+  dom.cloudSyncBadge.className = `cloud-sync-pill ${status.badgeClass || 'badge-live'}`;
+  dom.cloudSyncBadge.title = status.details || status.label;
 }
 
 /**
@@ -584,7 +613,7 @@ function handleAddItem(event) {
     dom.formPreviewBox.innerHTML = '';
   }
 
-  render();
+  render(true);
   showToast(`"${name}" berhasil dimasukkan ke troli`, 'success');
 }
 
@@ -601,7 +630,7 @@ async function handleCartListClick(event) {
     const item = state.items.find(i => i.id === id);
     if (item) {
       item.quantity += 1;
-      render();
+      render(true);
     }
     return;
   }
@@ -614,7 +643,7 @@ async function handleCartListClick(event) {
     if (item) {
       if (item.quantity > 1) {
         item.quantity -= 1;
-        render();
+        render(true);
       } else {
         showToast('Kuantitas minimal 1. Gunakan tombol hapus untuk membuang item.', 'info');
       }
@@ -640,7 +669,7 @@ async function handleCartListClick(event) {
         const index = state.items.findIndex(i => i.id === id);
         if (index !== -1) {
           state.items[index] = updated;
-          render();
+          render(true);
           showToast(`Item "${updated.name}" berhasil diperbarui`, 'success');
         }
       }
@@ -656,7 +685,7 @@ async function handleCartListClick(event) {
     const index = state.items.findIndex(i => i.id === id);
     if (index !== -1) {
       state.items.splice(index, 1);
-      render();
+      render(true);
       showToast(`Item "${name}" dihapus dari keranjang`, 'info');
     }
     return;
@@ -677,7 +706,7 @@ function handleQtyInputChange(event) {
   if (item) {
     if (!isNaN(val) && val >= 1) {
       item.quantity = val;
-      render();
+      render(true);
     } else {
       target.value = item.quantity;
       showToast('Kuantitas harus angka minimal 1!', 'warning');
@@ -741,18 +770,16 @@ function loadScenarioDT2() {
     }
   ];
 
-  render();
+  render(true);
   showToast('Skenario Uji DT2 Kasus Rian berhasil dimuat!', 'success');
 }
 
 /**
  * Berpindah tab pada Bottom Navigation Bar
- * @param {string} tabId ID Tab yang dituju (tab-belanja, tab-riwayat, tab-anggaran)
  */
 function switchTab(tabId) {
   activeTab = tabId;
 
-  // Update tampilan konten tab
   dom.tabViews.forEach(view => {
     if (view.id === tabId) {
       view.classList.add('active');
@@ -761,7 +788,6 @@ function switchTab(tabId) {
     }
   });
 
-  // Update status tombol navigasi bawah
   dom.navTabBtns.forEach(btn => {
     if (btn.getAttribute('data-tab') === tabId) {
       btn.classList.add('active');
@@ -770,7 +796,6 @@ function switchTab(tabId) {
     }
   });
 
-  // Scroll ke atas dengan halus saat berpindah tab
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -803,7 +828,7 @@ function bindEventListeners() {
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val >= 0) {
         state.budgetLimit = val;
-        render();
+        render(true);
       }
     });
   }
@@ -816,17 +841,17 @@ function bindEventListeners() {
       if (!isNaN(amount)) {
         state.budgetLimit = amount;
         if (dom.budgetLimitInput) dom.budgetLimitInput.value = amount;
-        render();
+        render(true);
         showToast(`Batas saldo dompet disetel ke ${formatRupiah(amount)}`, 'info');
       }
     });
   });
 
-  // 6. Ubah Lokasi Supermarket & Tanggal Transaksi (Standar Arsitektur 2)
+  // 6. Ubah Lokasi Supermarket & Tanggal Transaksi
   if (dom.storeSelect) {
     dom.storeSelect.addEventListener('change', (e) => {
       state.storeName = e.target.value;
-      render();
+      render(true);
       showToast(`Lokasi toko: ${state.storeName}`, 'info');
     });
   }
@@ -834,7 +859,7 @@ function bindEventListeners() {
   if (dom.dateInput) {
     dom.dateInput.addEventListener('change', (e) => {
       state.shoppingDate = e.target.value;
-      render();
+      render(true);
     });
   }
 
@@ -854,7 +879,7 @@ function bindEventListeners() {
       });
       if (confirmed) {
         state.items = [];
-        render();
+        render(true);
         showToast('Keranjang belanja berhasil dikosongkan.', 'info');
       }
     });
@@ -939,10 +964,43 @@ function bindEventListeners() {
     });
   }
 
-  // 13. Inisialisasi Sinkronisasi Realtime Antar-Tab
+  // 13. Tombol Ganti Sesi Belanja (Multi-Device Pairing HP & PC)
+  if (dom.btnChangeSession) {
+    dom.btnChangeSession.addEventListener('click', () => {
+      const current = getActiveSessionId();
+      const newSession = prompt('Masukkan Kode Sesi Belanja (Gunakan kode yang sama di HP dan PC):', current);
+      if (newSession && newSession.trim() && newSession.trim() !== current) {
+        const cleanSession = setActiveSessionId(newSession.trim());
+        if (dom.currentSessionLabel) dom.currentSessionLabel.textContent = cleanSession;
+        
+        // Hubungkan ulang listener realtime onSnapshot ke sesi baru
+        initFirestoreRealtimeSync(
+          cleanSession,
+          (cloudState) => {
+            state = cloudState;
+            render(false);
+          },
+          (status) => {
+            updateSyncStatusBadge(status);
+          }
+        );
+
+        showToast(`Beralih ke Sesi Cloud: "${cleanSession}"`, 'info');
+      }
+    });
+  }
+
+  // 14. Klik Badge Status Sync untuk informasi detail
+  if (dom.cloudSyncBadge) {
+    dom.cloudSyncBadge.addEventListener('click', () => {
+      showToast(`${currentSyncStatus.label}: ${currentSyncStatus.details || 'Realtime multi-device aktif'}`, 'info');
+    });
+  }
+
+  // 15. Sinkronisasi Antar-Tab Lokal (BroadcastChannel)
   initLocalSync((updatedState) => {
     state = updatedState;
-    render();
+    render(false);
   });
 }
 
@@ -954,9 +1012,27 @@ function init() {
   state = loadState();
   populateDropdownOptions();
   bindEventListeners();
-  render();
+  render(false); // Render lokal awal tanpa delay
 
-  // Daftarkan Service Worker PWA jika didukung
+  // Inisialisasi Sinkronisasi Realtime Cloud Firestore onSnapshot()
+  const activeSessionId = getActiveSessionId();
+  if (dom.currentSessionLabel) {
+    dom.currentSessionLabel.textContent = activeSessionId;
+  }
+
+  initFirestoreRealtimeSync(
+    activeSessionId,
+    (cloudState) => {
+      // Data real-time tiba dari HP / PC lain via onSnapshot()!
+      state = cloudState;
+      render(false); // Render update tanpa push balik
+    },
+    (status) => {
+      updateSyncStatusBadge(status);
+    }
+  );
+
+  // Daftarkan Service Worker PWA
   if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('./sw.js').catch((err) => {
       console.warn('PWA ServiceWorker gagal didaftarkan:', err);

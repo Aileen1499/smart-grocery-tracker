@@ -50,7 +50,10 @@
           </div>
         </div>
         <div class="brand-right">
-          <span class="mode-badge">Mobile PWA</span>
+          <div id="cloud-sync-badge" class="cloud-sync-pill badge-live" title="Status Sinkronisasi Multi-Device Cloud Firestore">
+            <span class="sync-dot"></span>
+            <span id="sync-status-text">Cloud Realtime</span>
+          </div>
         </div>
       </div>
 
@@ -83,6 +86,13 @@
             </label>
             <input type="date" id="date-input" class="session-date-input" value="2026-10-26" aria-label="Tanggal Belanja">
           </div>
+        </div>
+        <div class="session-meta-strip">
+          <div class="sms-left">
+            <span class="sms-label">Sesi Cloud:</span>
+            <span id="current-session-label" class="sms-session-name">rian_belanja_utama</span>
+          </div>
+          <button type="button" id="btn-change-session" class="btn-sms-change" title="Ubah Kode Sesi Sesuai HP & PC">Ganti Sesi</button>
         </div>
       </div>
     </header>
