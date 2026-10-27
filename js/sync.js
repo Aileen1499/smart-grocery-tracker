@@ -100,7 +100,8 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
           budgetLimit: typeof cloudData.walletLimit === 'number' ? cloudData.walletLimit : (cloudData.budgetLimit || 350000),
           items: Array.isArray(cloudData.items) ? cloudData.items : [],
           customHistory: cloudData.customHistory || {},
-          lastUpdated: cloudData.lastUpdated || Date.now()
+          lastUpdated: cloudData.lastUpdated || Date.now(),
+          updatedByDevice: cloudData.updatedByDevice || 'Cloud Firestore'
         };
 
         // Simpan ke LocalStorage sebagai write-through cache (Tahan F5 saat offline)

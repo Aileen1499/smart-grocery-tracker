@@ -1020,12 +1020,17 @@ function init() {
     dom.currentSessionLabel.textContent = activeSessionId;
   }
 
+  let isInitialCloudLoad = true;
   initFirestoreRealtimeSync(
     activeSessionId,
     (cloudState) => {
       // Data real-time tiba dari HP / PC lain via onSnapshot()!
       state = cloudState;
       render(false); // Render update tanpa push balik
+      if (!isInitialCloudLoad && cloudState.updatedByDevice) {
+        showToast(`Tersinkron realtime (${cloudState.updatedByDevice})!`, 'info');
+      }
+      isInitialCloudLoad = false;
     },
     (status) => {
       updateSyncStatusBadge(status);
