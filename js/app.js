@@ -51,7 +51,8 @@ import {
   UNIT_OPTIONS,
   DEFAULT_STORE,
   DEFAULT_DATE,
-  DEFAULT_BUDGET
+  DEFAULT_BUDGET,
+  CURRENT_BENCHMARK_PRICES
 } from './history-data.js';
 
 // State aplikasi aktif
@@ -421,30 +422,43 @@ function renderHistoryCatalog() {
     return;
   }
 
+  const currentBenchmarks = (CURRENT_BENCHMARK_PRICES && CURRENT_BENCHMARK_PRICES[state.storeName]) || {};
+
   dom.historyCatalogContainer.innerHTML = catalog.map(catItem => {
     const inCart = state.items.find(i => 
       i.name.toLowerCase().includes(catItem.name.toLowerCase()) || 
       catItem.name.toLowerCase().includes(i.name.toLowerCase())
     );
 
-    const currentPrice = inCart ? inCart.originalPrice : catItem.price;
+    // Prioritas harga sekarang: item di troli > benchmark toko saat ini (26 Okt) > harga histori
+    let currentPrice = catItem.price;
+    if (inCart) {
+      currentPrice = inCart.originalPrice;
+    } else if (currentBenchmarks[catItem.name] !== undefined) {
+      currentPrice = currentBenchmarks[catItem.name];
+    }
+
     const comp = comparePrice(catItem.name, currentPrice, state.storeName, '2026-09-26', state.customHistory);
 
     let badgeHtml = '';
     if (comp.status === 'UP') {
-      badgeHtml = `<span class="price-comp-badge comp-up">↑ ${comp.diffFormatted} (${comp.diffPercentFormatted})</span>`;
+      badgeHtml = `<span class="price-comp-badge comp-up">↑ ${comp.diffFormatted} (${comp.diffPercentFormatted}) NAIK</span>`;
     } else if (comp.status === 'DOWN') {
-      badgeHtml = `<span class="price-comp-badge comp-down">↓ ${comp.diffFormatted} (${comp.diffPercentFormatted})</span>`;
+      badgeHtml = `<span class="price-comp-badge comp-down">↓ ${comp.diffFormatted} (${comp.diffPercentFormatted}) TURUN</span>`;
     } else {
       badgeHtml = `<span class="price-comp-badge comp-stable">= Stabil (0%)</span>`;
     }
+
+    const isPriceChanged = currentPrice !== catItem.price;
 
     return `
       <div class="catalog-item-card">
         <div class="cat-item-left">
           <strong class="cat-item-name">${escapeHtml(catItem.name)}</strong>
           <div class="cat-item-prices">
-            <span>Bulan lalu: ${formatRupiah(catItem.price)}</span>
+            <span>Bulan lalu: ${isPriceChanged ? `<del>${formatRupiah(catItem.price)}</del>` : formatRupiah(catItem.price)}</span>
+            <span>•</span>
+            <span>Sekarang: <strong style="color:var(--neutral-dark)">${formatRupiah(currentPrice)}</strong></span>
             <span>•</span>
             <span>Satuan: ${escapeHtml(catItem.unit)}</span>
           </div>
@@ -455,7 +469,7 @@ function renderHistoryCatalog() {
             type="button" 
             class="btn-add-from-catalog" 
             data-name="${escapeHtml(catItem.name)}" 
-            data-price="${catItem.price}" 
+            data-price="${currentPrice}" 
             data-cat="${escapeHtml(catItem.category)}" 
             data-unit="${escapeHtml(catItem.unit)}"
           >
@@ -768,16 +782,25 @@ async function handleCartListClick(event) {
     return;
   }
 
-  // Tombol Hapus Baris Item (SRS F-06A)
+  // Tombol Hapus Baris Item (SRS F-06A & UX Konfirmasi Hapus Aman)
   const btnDelete = target.closest('.btn-delete-item');
   if (btnDelete) {
     const id = btnDelete.getAttribute('data-id');
     const name = btnDelete.getAttribute('data-name') || 'barang';
-    const index = state.items.findIndex(i => i.id === id);
-    if (index !== -1) {
-      state.items.splice(index, 1);
-      render(true);
-      showToast(`Item "${name}" dihapus dari keranjang`, 'info');
+    const confirmed = await showConfirmModal({
+      title: 'Hapus Barang Belanjaan?',
+      message: `Apakah Anda yakin ingin menghapus "${name}" dari troli belanja?`,
+      confirmText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      isDanger: true
+    });
+    if (confirmed) {
+      const index = state.items.findIndex(i => i.id === id);
+      if (index !== -1) {
+        state.items.splice(index, 1);
+        render(true);
+        showToast(`Item "${name}" berhasil dihapus dari keranjang`, 'info');
+      }
     }
     return;
   }

@@ -15,6 +15,83 @@ export const SESSION_STORAGE_KEY = 'smart_grocery_session_id';
 let activeUnsubscribe = null;
 let currentSessionId = DEFAULT_SESSION_ID;
 let isUpdatingFromCloud = false;
+let mqttClient = null;
+
+/**
+ * Inisialisasi Realtime Cloud Relay (WebSocket Broker)
+ * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live
+ */
+function initRealtimeCloudRelay(sessionId, onCloudDataCallback, onStatusChangeCallback) {
+  if (typeof window === 'undefined' || !window.mqtt) return;
+
+  try {
+    if (mqttClient) {
+      try { mqttClient.end(true); } catch (e) {}
+      mqttClient = null;
+    }
+
+    const topic = `smart_grocery_sessions_${sessionId}`;
+    const clientId = 'pwa_' + Math.random().toString(16).substr(2, 8);
+
+    mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+      clientId,
+      clean: true,
+      connectTimeout: 5000,
+      reconnectPeriod: 3000
+    });
+
+    mqttClient.on('connect', () => {
+      mqttClient.subscribe(topic, { qos: 0 });
+      if (typeof onStatusChangeCallback === 'function') {
+        onStatusChangeCallback({
+          connected: true,
+          isCloud: true,
+          label: 'Cloud Realtime (Live)',
+          badgeClass: 'badge-live',
+          details: `Tersinkron multi-device di sesi: ${sessionId}`
+        });
+      }
+    });
+
+    mqttClient.on('message', (t, msg) => {
+      if (t === topic) {
+        try {
+          const payload = JSON.parse(msg.toString());
+          if (payload && payload.sessionId === currentSessionId && !isUpdatingFromCloud) {
+            isUpdatingFromCloud = true;
+            const normalizedState = {
+              storeName: payload.storeLocation || payload.storeName || 'Lotte Mart Grocery - Puri Indah',
+              shoppingDate: payload.shoppingDate || '2026-10-26',
+              budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
+              items: Array.isArray(payload.items) ? payload.items : [],
+              customHistory: payload.customHistory || {},
+              lastUpdated: payload.lastUpdated || Date.now(),
+              updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
+            };
+
+            saveState(normalizedState);
+
+            if (typeof onCloudDataCallback === 'function') {
+              onCloudDataCallback(normalizedState);
+            }
+
+            setTimeout(() => {
+              isUpdatingFromCloud = false;
+            }, 100);
+          }
+        } catch (e) {
+          console.warn('Realtime parse error:', e);
+        }
+      }
+    });
+
+    mqttClient.on('error', (err) => {
+      console.warn('Realtime relay note:', err);
+    });
+  } catch (err) {
+    console.warn('Gagal menginisialisasi realtime relay:', err);
+  }
+}
 
 /**
  * Mendapatkan Session ID aktif (dari localStorage atau default)
@@ -57,6 +134,9 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
   }
 
   currentSessionId = setActiveSessionId(sessionId);
+
+  // Inisialisasi Realtime Cloud Relay (Koneksi instan antar-perangkat)
+  initRealtimeCloudRelay(currentSessionId, onCloudDataCallback, onStatusChangeCallback);
 
   // Cek ketersediaan Firestore instance
   if (!db || initError) {
@@ -221,6 +301,18 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
       updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
     };
 
+    // 1. Broadcast seketika ke Realtime Relay (Aktif instan antar HP & PC di link Vercel)
+    if (mqttClient && mqttClient.connected) {
+      try {
+        mqttClient.publish(`smart_grocery_sessions_${sessionId || currentSessionId}`, JSON.stringify(payload));
+      } catch (err) {
+        console.warn('Realtime publish warning:', err);
+      }
+    }
+
+    if (!db || initError) return true;
+
+    const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
     await setDoc(docRef, payload, { merge: true });
     return true;
   } catch (err) {

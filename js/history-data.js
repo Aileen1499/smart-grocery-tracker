@@ -58,6 +58,26 @@ export const HISTORICAL_PRICES = {
   }
 };
 
+/**
+ * Benchmark harga supermarket terkini (26 Oktober 2026) sesuai Skenario Uji 4 DT2
+ * - Beras 5kg: Bulan lalu Rp 68.000 -> Sekarang Rp 74.000 (Harga Naik / ↑ +Rp 6.000 / Merah)
+ * - Telur 1kg: Bulan lalu Rp 32.000 -> Sekarang Rp 28.000 (Harga Turun / ↓ -Rp 4.000 / Hijau)
+ * - Garam 500g: Bulan lalu Rp 5.000 -> Sekarang Rp 5.000 (Harga Stabil / = Stabil / Abu-abu)
+ * - Minyak Goreng 2L: Rp 43.000 (Stabil)
+ * - Sabun Cuci: Rp 20.000 (Stabil)
+ * - Wajan: Rp 100.000 (Stabil)
+ */
+export const CURRENT_BENCHMARK_PRICES = {
+  'Lotte Mart Grocery - Puri Indah': {
+    'Beras Rojolele': 74000,
+    'Telur 1kg': 28000,
+    'Garam 500g': 5000,
+    'Minyak Goreng 2L': 43000,
+    'Sabun Cuci': 20000,
+    'Wajan': 100000
+  }
+};
+
 export const STORE_OPTIONS = [
   'Lotte Mart Grocery - Puri Indah',
   'Hypermart - Puri Indah',
