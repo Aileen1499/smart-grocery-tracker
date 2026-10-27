@@ -426,8 +426,10 @@ function renderHistoryCatalog() {
 
   dom.historyCatalogContainer.innerHTML = catalog.map(catItem => {
     const inCart = state.items.find(i => 
-      i.name.toLowerCase().includes(catItem.name.toLowerCase()) || 
-      catItem.name.toLowerCase().includes(i.name.toLowerCase())
+      i && i.name && (
+        i.name.toLowerCase().includes((catItem.name || '').toLowerCase()) || 
+        (catItem.name || '').toLowerCase().includes(i.name.toLowerCase())
+      )
     );
 
     // Prioritas harga sekarang: item di troli > benchmark toko saat ini (26 Okt) > harga histori
@@ -632,94 +634,108 @@ function updateFormPreview() {
   }
 }
 
+let isSubmittingItem = false;
+
 /**
  * Menangani penambahan item belanja dari form (SRS F-01 & Skenario Uji 1)
  * Menolak input kosong atau harga minus (-Rp 15.000) tanpa menambah baris rusak
  */
 function handleAddItem(event) {
-  event.preventDefault();
-
-  const nameInput = dom.itemNameInput;
-  const priceInput = dom.itemPriceInput;
-  const qtyInput = dom.itemQtyInput;
-
-  const name = nameInput?.value.trim() || '';
-  const category = dom.itemCategorySelect?.value || 'Bahan Pokok';
-  const unit = dom.itemUnitSelect?.value || 'pcs';
-  const priceRaw = priceInput?.value || '';
-  const qtyRaw = qtyInput?.value;
-  const discountInput = dom.itemDiscountInput?.value.trim() || '';
-
-  // Reset visual error state
-  nameInput?.classList.remove('input-error');
-  priceInput?.classList.remove('input-error');
-  qtyInput?.classList.remove('input-error');
-
-  // 1. VALIDASI NAMA BARANG KOSONG (Wajib menolak dengan pesan jelas, tidak menambah data)
-  if (!name) {
-    nameInput?.classList.add('input-error');
-    nameInput?.focus();
-    showToast('⚠️ Nama barang wajib diisi! Harap masukkan nama barang belanjaan.', 'error');
-    return;
+  if (event) {
+    try { event.preventDefault(); } catch (e) {}
   }
 
-  // 2. VALIDASI HARGA MINUS / INVALID / KOSONG (Wajib menolak input minus misal: -Rp 15.000)
-  const isNegative = String(priceRaw).trim().includes('-');
-  const parsedPrice = parsePriceInput(priceRaw);
+  if (isSubmittingItem) return;
+  isSubmittingItem = true;
+  setTimeout(() => { isSubmittingItem = false; }, 300);
 
-  if (isNegative || parsedPrice < 0) {
-    priceInput?.classList.add('input-error');
-    priceInput?.focus();
-    showToast('⚠️ Input Ditolak: Harga barang tidak boleh bernilai negatif (-Rp 15.000)! Masukkan harga positif.', 'error');
-    return;
+  try {
+    const nameInput = dom.itemNameInput;
+    const priceInput = dom.itemPriceInput;
+    const qtyInput = dom.itemQtyInput;
+
+    const name = nameInput?.value.trim() || '';
+    const category = dom.itemCategorySelect?.value || 'Bahan Pokok';
+    const unit = dom.itemUnitSelect?.value || 'pcs';
+    const priceRaw = priceInput?.value || '';
+    const qtyRaw = qtyInput?.value;
+    const discountInput = dom.itemDiscountInput?.value.trim() || '';
+
+    // Reset visual error state
+    nameInput?.classList.remove('input-error');
+    priceInput?.classList.remove('input-error');
+    qtyInput?.classList.remove('input-error');
+
+    // 1. VALIDASI NAMA BARANG KOSONG (Wajib menolak dengan pesan jelas, tidak menambah data)
+    if (!name) {
+      nameInput?.classList.add('input-error');
+      nameInput?.focus();
+      showToast('⚠️ Nama barang wajib diisi! Harap masukkan nama barang belanjaan.', 'error');
+      return;
+    }
+
+    // 2. VALIDASI HARGA MINUS / INVALID / KOSONG (Wajib menolak input minus misal: -Rp 15.000)
+    const isNegative = String(priceRaw).trim().includes('-');
+    const parsedPrice = parsePriceInput(priceRaw);
+
+    if (isNegative || parsedPrice < 0) {
+      priceInput?.classList.add('input-error');
+      priceInput?.focus();
+      showToast('⚠️ Input Ditolak: Harga barang tidak boleh bernilai negatif (-Rp 15.000)! Masukkan harga positif.', 'error');
+      return;
+    }
+
+    if (parsedPrice <= 0) {
+      priceInput?.classList.add('input-error');
+      priceInput?.focus();
+      showToast('⚠️ Input Ditolak: Harga barang wajib diisi dengan nominal angka lebih dari Rp 0!', 'error');
+      return;
+    }
+
+    // 3. VALIDASI KUANTITAS INVALID
+    const qty = parseInt(qtyRaw, 10);
+    if (isNaN(qty) || qty <= 0) {
+      qtyInput?.classList.add('input-error');
+      qtyInput?.focus();
+      showToast('⚠️ Input Ditolak: Kuantitas barang minimal 1!', 'error');
+      return;
+    }
+
+    // Simpan ke histori dinamis (Price Tracker SRS F-04)
+    state.customHistory = recordPriceHistory(name, parsedPrice, state.storeName, state.shoppingDate, state.customHistory);
+
+    const newItem = {
+      id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      name,
+      category,
+      unit,
+      quantity: qty,
+      originalPrice: parsedPrice,
+      discountInput
+    };
+
+    state.items.push(newItem);
+    state.lastUpdated = Date.now();
+
+    // Reset form secara bersih
+    if (dom.itemForm) dom.itemForm.reset();
+    if (dom.itemQtyInput) dom.itemQtyInput.value = '1';
+    if (dom.itemPriceInput) dom.itemPriceInput.value = '';
+    if (dom.itemPriceHelper) {
+      dom.itemPriceHelper.textContent = 'Format: Rp 0';
+      dom.itemPriceHelper.className = 'field-helper-hint';
+    }
+    if (dom.formPreviewBox) {
+      dom.formPreviewBox.classList.add('hidden');
+      dom.formPreviewBox.innerHTML = '';
+    }
+
+    render(true);
+    showToast(`✅ "${name}" (${formatRupiah(parsedPrice)}) berhasil dimasukkan ke troli`, 'success');
+  } catch (err) {
+    console.error('Error saat menambah item:', err);
+    showToast('Terjadi kendala saat menambahkan barang: ' + err.message, 'error');
   }
-
-  if (parsedPrice <= 0) {
-    priceInput?.classList.add('input-error');
-    priceInput?.focus();
-    showToast('⚠️ Input Ditolak: Harga barang wajib diisi dengan nominal angka lebih dari Rp 0!', 'error');
-    return;
-  }
-
-  // 3. VALIDASI KUANTITAS INVALID
-  const qty = parseInt(qtyRaw, 10);
-  if (isNaN(qty) || qty <= 0) {
-    qtyInput?.classList.add('input-error');
-    qtyInput?.focus();
-    showToast('⚠️ Input Ditolak: Kuantitas barang minimal 1!', 'error');
-    return;
-  }
-
-  // Simpan ke histori dinamis (Price Tracker SRS F-04)
-  state.customHistory = recordPriceHistory(name, parsedPrice, state.storeName, state.shoppingDate, state.customHistory);
-
-  const newItem = {
-    id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-    name,
-    category,
-    unit,
-    quantity: qty,
-    originalPrice: parsedPrice,
-    discountInput
-  };
-
-  state.items.push(newItem);
-
-  // Reset form secara bersih
-  dom.itemForm.reset();
-  if (dom.itemQtyInput) dom.itemQtyInput.value = '1';
-  if (dom.itemPriceInput) dom.itemPriceInput.value = '';
-  if (dom.itemPriceHelper) {
-    dom.itemPriceHelper.textContent = 'Format: Rp 0';
-    dom.itemPriceHelper.className = 'field-helper-hint';
-  }
-  if (dom.formPreviewBox) {
-    dom.formPreviewBox.classList.add('hidden');
-    dom.formPreviewBox.innerHTML = '';
-  }
-
-  render(true);
-  showToast(`✅ "${name}" (${formatRupiah(parsedPrice)}) berhasil dimasukkan ke troli`, 'success');
 }
 
 /**
@@ -923,6 +939,17 @@ function bindEventListeners() {
     dom.itemForm.addEventListener('submit', handleAddItem);
   }
 
+  // Safeguard tambahan untuk tombol Masukkan ke Keranjang saat diklik di Laptop/Desktop
+  const btnAddItemDirect = document.getElementById('btn-add-item');
+  if (btnAddItemDirect) {
+    btnAddItemDirect.addEventListener('click', (e) => {
+      // Jika event belum dicegah atau form submit belum jalan, jalankan handleAddItem
+      if (!isSubmittingItem) {
+        handleAddItem(e);
+      }
+    });
+  }
+
   // 2. Realtime preview input form (SRS F-03 & F-04) & Format Ribuan Koma
   if (dom.itemNameInput) {
     dom.itemNameInput.addEventListener('input', () => {
@@ -1057,19 +1084,26 @@ function bindEventListeners() {
         const category = btn.getAttribute('data-cat') || 'Bahan Pokok';
         const unit = btn.getAttribute('data-unit') || 'pcs';
 
-        dom.itemNameInput.value = name;
-        dom.itemNameInput.classList.remove('input-error');
-        dom.itemCategorySelect.value = category;
-        dom.itemUnitSelect.value = unit;
-        dom.itemPriceInput.value = formatNumberWithCommas(price);
-        dom.itemPriceInput.classList.remove('input-error');
-        dom.itemQtyInput.value = '1';
-        dom.itemDiscountInput.value = '';
+        // Masukkan langsung ke troli belanjaan seketika!
+        const existing = state.items.find(i => (i.name || '').toLowerCase() === (name || '').toLowerCase());
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          state.items.push({
+            id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            name,
+            category,
+            unit,
+            quantity: 1,
+            originalPrice: price,
+            discountInput: ''
+          });
+        }
 
-        updatePriceHelper();
+        state.lastUpdated = Date.now();
+        render(true);
         switchTab('tab-belanja');
-        updateFormPreview();
-        showToast(`Item "${name}" siap dimasukkan ke form`, 'info');
+        showToast(`✅ "${name}" (${formatRupiah(price)}) berhasil dimasukkan ke keranjang`, 'success');
       }
     });
   }

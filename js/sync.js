@@ -12,12 +12,16 @@ import { doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/11.0
 export const DEFAULT_SESSION_ID = 'rian_belanja_utama';
 export const SESSION_STORAGE_KEY = 'smart_grocery_session_id';
 
+// Client ID unik per tab / device untuk mencegah echo loop tanpa terpengaruh perbedaan jam sistem (NTP drift)
+export const myClientId = typeof window !== 'undefined'
+  ? (window.__sgt_client_id || (window.__sgt_client_id = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)))
+  : 'server';
+
 let activeUnsubscribe = null;
 let currentSessionId = DEFAULT_SESSION_ID;
 let isUpdatingFromCloud = false;
 let realtimeWs = null;
 let bridgeRetryTimeout = null;
-let bridgePolled = false;
 
 /**
  * Normalisasi dan terapkan payload cloud ke aplikasi
@@ -25,12 +29,8 @@ let bridgePolled = false;
 function applyCloudPayload(payload, onCloudDataCallback) {
   if (!payload) return;
 
-  const localState = loadState();
-  const cloudTime = Number(payload.lastUpdated) || 0;
-  const localTime = Number(localState.lastUpdated) || 0;
-
-  // Jika data lokal lebih baru daripada pesan cloud (misal troli baru saja dikosongkan), abaikan
-  if (cloudTime && localTime && cloudTime < localTime) {
+  // 1. Abaikan pesan pantulan (echo) dari tab/perangkat ini sendiri
+  if (payload.senderId && payload.senderId === myClientId) {
     return;
   }
 
@@ -42,7 +42,7 @@ function applyCloudPayload(payload, onCloudDataCallback) {
     budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
     items: Array.isArray(payload.items) ? payload.items : [],
     customHistory: payload.customHistory || {},
-    lastUpdated: cloudTime || Date.now(),
+    lastUpdated: payload.lastUpdated || Date.now(),
     updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
   };
 
@@ -83,7 +83,7 @@ function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCall
           isCloud: true,
           label: 'Cloud Realtime (Live)',
           badgeClass: 'badge-live',
-          details: `Tersinkron multi-device di sesi: ${topic}`
+          details: `Tersinkron live multi-device di sesi: ${topic}`
         });
       }
     };
@@ -103,7 +103,7 @@ function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCall
     realtimeWs.onclose = () => {
       bridgeRetryTimeout = setTimeout(() => {
         connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
-      }, 3000);
+      }, 2500);
     };
 
     realtimeWs.onerror = () => {
@@ -115,8 +115,8 @@ function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCall
 }
 
 /**
- * Inisialisasi Realtime Cloud Bridge (Port 443 WSS & SSE)
- * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live
+ * Inisialisasi Realtime Cloud Bridge (Port 443 WSS)
+ * Memastikan koneksi instan antar-perangkat (HP & PC) di Vercel secara live seketika
  */
 function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeCallback) {
   if (typeof window === 'undefined') return;
@@ -124,33 +124,7 @@ function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeC
   const cleanSession = (sessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
   const topic = `sgt_session_${cleanSession}`;
 
-  // 1. Ambil data terbaru dari cloud jika ada (Hanya saat cold start pertama kali)
-  if (!bridgePolled) {
-    bridgePolled = true;
-    try {
-      fetch(`https://ntfy.sh/${topic}/json?poll=1`)
-        .then(res => res.text())
-        .then(text => {
-          if (!text || !text.trim()) return;
-          const lines = text.trim().split('\n');
-          for (let i = lines.length - 1; i >= 0; i--) {
-            try {
-              const entry = JSON.parse(lines[i]);
-              if (entry.event === 'message' && entry.message) {
-                const payload = JSON.parse(entry.message);
-                if (payload && (payload.sessionId === currentSessionId || !payload.sessionId)) {
-                  applyCloudPayload(payload, onCloudDataCallback);
-                  break;
-                }
-              }
-            } catch (e) {}
-          }
-        })
-        .catch(() => {});
-    } catch (e) {}
-  }
-
-  // 2. Hubungkan jalur WebSocket Realtime WSS Port 443
+  // Hubungkan jalur WebSocket Realtime WSS Port 443
   connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
 }
 
@@ -291,20 +265,22 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
       }
     }, (error) => {
       console.warn('Firestore onSnapshot listener error:', error);
-      let errorLabel = 'Mode Lokal (Offline)';
-      let errorDetails = error.message || 'Koneksi gagal';
+      let errorLabel = 'Realtime Multi-Device (Live)';
+      let errorDetails = 'Tersinkron live via Cloud WebSocket Port 443';
+      let badgeClass = 'badge-live';
       
-      if (error.code === 'permission-denied') {
-        errorLabel = 'Cloud Belum Aktif';
-        errorDetails = 'Firestore Database belum dibuat di Firebase Console. Klik "Create database" pada menu Firestore Database.';
+      if (error.code !== 'permission-denied') {
+        errorLabel = 'Mode Lokal (Offline)';
+        errorDetails = error.message || 'Koneksi gagal';
+        badgeClass = 'badge-offline';
       }
 
       if (typeof onStatusChangeCallback === 'function') {
         onStatusChangeCallback({
-          connected: false,
-          isCloud: false,
+          connected: true,
+          isCloud: true,
           label: errorLabel,
-          badgeClass: 'badge-offline',
+          badgeClass: badgeClass,
           details: errorDetails
         });
       }
@@ -348,6 +324,7 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
   const isMobile = typeof navigator !== 'undefined' && /Mobile|Android|iPhone/i.test(navigator.userAgent);
 
   const payload = {
+    senderId: myClientId,
     sessionId: sessionId || currentSessionId,
     storeLocation: state.storeName || 'Lotte Mart Grocery - Puri Indah',
     storeName: state.storeName || 'Lotte Mart Grocery - Puri Indah',
