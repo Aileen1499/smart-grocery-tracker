@@ -140,18 +140,21 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
       }
     }, (error) => {
       console.warn('Firestore onSnapshot listener error:', error);
-      let errorMsg = 'Mode Lokal (Offline)';
+      let errorLabel = 'Mode Lokal (Offline)';
+      let errorDetails = error.message || 'Koneksi gagal';
+      
       if (error.code === 'permission-denied') {
-        errorMsg = 'Akses Firestore Ditolak (Periksa Security Rules)';
+        errorLabel = 'Cloud Belum Aktif';
+        errorDetails = 'Firestore Database belum dibuat di Firebase Console. Klik "Create database" pada menu Firestore Database.';
       }
 
       if (typeof onStatusChangeCallback === 'function') {
         onStatusChangeCallback({
           connected: false,
           isCloud: false,
-          label: errorMsg,
+          label: errorLabel,
           badgeClass: 'badge-offline',
-          details: error.message || 'Koneksi gagal'
+          details: errorDetails
         });
       }
     });
@@ -201,15 +204,15 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
       walletLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
       budgetLimit: typeof state.budgetLimit === 'number' ? state.budgetLimit : 350000,
       items: (state.items || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.category,
-        unit: item.unit,
-        quantity: item.quantity,
-        originalPrice: item.originalPrice,
+        id: item.id || ('item_' + Math.random().toString(36).substr(2, 5)),
+        name: item.name || '',
+        category: item.category || 'Lain-lain',
+        unit: item.unit || 'pcs',
+        quantity: Number(item.quantity) || 1,
+        originalPrice: Number(item.originalPrice) || 0,
         discountInput: item.discountInput || '',
-        finalUnitPrice: item.finalUnitPrice || item.originalPrice,
-        subtotal: item.subtotal || (item.originalPrice * item.quantity)
+        finalUnitPrice: Number(item.finalUnitPrice) || Number(item.originalPrice) || 0,
+        subtotal: Number(item.subtotal) || 0
       })),
       customHistory: state.customHistory || {},
       totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),

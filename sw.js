@@ -1,9 +1,13 @@
-const CACHE_NAME = 'smart-grocery-v2';
+const CACHE_NAME = 'smart-grocery-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
+  './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
   './js/app.js',
   './js/calculator.js',
   './js/comparator.js',
