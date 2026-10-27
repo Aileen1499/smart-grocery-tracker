@@ -1,0 +1,19 @@
+{
+  "name": "smart-grocery-tracker",
+  "version": "1.0.0",
+  "description": "Smart Grocery & Price Tracker - PWA Aplikasi Perhitungan Belanja dan Komparasi Fluktuasi Harga Realtime",
+  "main": "js/app.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "grocery-tracker",
+    "price-comparator",
+    "budget-safety-cap",
+    "pwa"
+  ],
+  "author": "ICT Codehub Mutiara Bangsa 2",
+  "license": "MIT"
+}

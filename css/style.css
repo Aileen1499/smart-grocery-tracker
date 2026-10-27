@@ -1,0 +1,1025 @@
+/* ==========================================================================
+   Smart Grocery & Price Tracker - PWA Styling
+   Dirancang mobile-first (375px), touch-friendly (>=44px), ergonomis satu tangan
+   ========================================================================== */
+
+:root {
+  --primary: #0f766e;
+  --primary-light: #14b8a6;
+  --primary-soft: #f0fdfa;
+  --primary-dark: #115e59;
+  
+  --danger: #dc2626;
+  --danger-light: #ef4444;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+  
+  --warning: #d97706;
+  --warning-light: #f59e0b;
+  --warning-soft: #fffbeb;
+  --warning-border: #fde68a;
+  
+  --success: #16a34a;
+  --success-light: #22c55e;
+  --success-soft: #f0fdf4;
+  --success-border: #bbf7d0;
+
+  --neutral-dark: #0f172a;
+  --neutral-body: #334155;
+  --neutral-muted: #64748b;
+  --neutral-light: #f8fafc;
+  --neutral-border: #e2e8f0;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+  
+  --min-touch-target: 44px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f1f5f9;
+  color: var(--neutral-body);
+  line-height: 1.5;
+  font-size: 14px;
+  padding-bottom: 90px; /* Ruang untuk sticky footer */
+}
+
+/* Container Responsif Mobile (Maksimal 480px untuk nuansa aplikasi mobile smartphone) */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Banner Bahaya Over Budget (> 100%) (SRS F-05)
+   ========================================================================== */
+.danger-banner {
+  background-color: var(--danger-light);
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  animation: pulseAlert 2s infinite;
+}
+
+@keyframes pulseAlert {
+  0%, 100% { background-color: #dc2626; }
+  50% { background-color: #b91c1c; }
+}
+
+.danger-banner.hidden {
+  display: none !important;
+}
+
+.danger-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.danger-text {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   Header Aplikasi
+   ========================================================================== */
+.app-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #ffffff;
+  padding: 18px 16px;
+  border-bottom: 3px solid var(--primary-light);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.app-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #ffffff;
+}
+
+.app-subtitle {
+  font-size: 11px;
+  color: #ccfbf1;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Section & Card Styling
+   ========================================================================== */
+.app-content {
+  padding: 14px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   Sesi Belanja: Toko & Tanggal (SRS F-01)
+   ========================================================================== */
+.session-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--neutral-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-control {
+  height: var(--min-touch-target);
+  padding: 0 12px;
+  border: 1.5px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--neutral-dark);
+  background-color: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+.hist-info-box {
+  margin-top: 8px;
+  background-color: var(--primary-soft);
+  border: 1px solid #ccfbf1;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   Budget Safety Cap (SRS F-05)
+   ========================================================================== */
+.budget-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-safe {
+  background-color: var(--success-soft);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.status-warning {
+  background-color: var(--warning-soft);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+  animation: bounceLight 1s infinite alternate;
+}
+
+@keyframes bounceLight {
+  from { transform: scale(1); }
+  to { transform: scale(1.02); }
+}
+
+.status-danger {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  font-weight: 700;
+}
+
+.status-neutral {
+  background-color: var(--neutral-light);
+  color: var(--neutral-muted);
+  border: 1px solid var(--neutral-border);
+}
+
+.budget-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.chip-budget {
+  background-color: var(--neutral-light);
+  border: 1px solid var(--neutral-border);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--neutral-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.chip-budget:hover, .chip-budget:active {
+  background-color: var(--primary-soft);
+  border-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.progress-container {
+  height: 12px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0 8px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 6px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.bar-safe {
+  background-color: var(--success-light);
+}
+
+.bar-warning {
+  background-color: var(--warning-light);
+}
+
+.bar-danger {
+  background-color: var(--danger-light);
+}
+
+.budget-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+  background: var(--neutral-light);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--neutral-muted);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--neutral-dark);
+}
+
+/* ==========================================================================
+   Form Input Item Belanja (SRS F-01, F-03, F-04)
+   ========================================================================== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.form-preview-box {
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-preview-box.hidden {
+  display: none !important;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-tag {
+  color: var(--neutral-muted);
+  font-size: 11px;
+}
+
+.preview-save {
+  color: var(--success);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.preview-up strong {
+  color: var(--danger);
+}
+
+.preview-down strong {
+  color: var(--success);
+}
+
+.preview-stable strong {
+  color: var(--neutral-muted);
+}
+
+.btn-submit {
+  width: 100%;
+  height: 48px;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+}
+
+.btn-submit:active {
+  transform: scale(0.98);
+  background-color: var(--primary-dark);
+}
+
+.quick-samples {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-label {
+  font-size: 11px;
+  color: var(--neutral-muted);
+}
+
+.btn-quick {
+  background: var(--neutral-light);
+  border: 1px solid var(--neutral-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--neutral-body);
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.btn-quick:hover {
+  background-color: #e2e8f0;
+}
+
+/* ==========================================================================
+   Keranjang Belanja (SRS F-02, F-04, F-06A)
+   ========================================================================== */
+.cart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-count {
+  background-color: var(--primary-soft);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #ccfbf1;
+}
+
+.btn-action-text {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.btn-action-text:hover {
+  background-color: var(--danger-soft);
+}
+
+.cart-items-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-item-card {
+  background: #ffffff;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.cart-item-card:hover {
+  border-color: #cbd5e1;
+}
+
+.cart-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.item-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-dark);
+}
+
+.item-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.badge-cat, .badge-unit {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: var(--neutral-light);
+  color: var(--neutral-muted);
+  border: 1px solid var(--neutral-border);
+}
+
+/* Badges Komparasi Harga Realtime (SRS F-04) */
+.price-comp-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.comp-up {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.comp-down {
+  background-color: var(--success-soft);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.comp-stable {
+  background-color: var(--neutral-light);
+  color: var(--neutral-muted);
+  border: 1px solid var(--neutral-border);
+}
+
+.comp-new {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.comp-icon {
+  font-weight: 700;
+}
+
+/* Pricing & Discount info */
+.cart-item-pricing {
+  font-size: 12px;
+  color: var(--neutral-muted);
+}
+
+.item-discount-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.orig-price-strike {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 11.5px;
+}
+
+.discount-pill {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.final-unit-tag {
+  color: var(--neutral-dark);
+  font-weight: 600;
+}
+
+/* Footer: Qty, Subtotal & Delete */
+.cart-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--neutral-border);
+}
+
+/* Ergonomi Touch Pengatur Kuantitas (SRS F-02 & UX 8) */
+.qty-controller {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.btn-qty {
+  width: var(--min-touch-target);
+  height: var(--min-touch-target);
+  background-color: var(--neutral-light);
+  border: none;
+  color: var(--neutral-dark);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s;
+}
+
+.btn-qty:active {
+  background-color: #cbd5e1;
+}
+
+.input-qty {
+  width: 44px;
+  height: var(--min-touch-target);
+  border: none;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-dark);
+  -moz-appearance: textfield;
+}
+
+.input-qty::-webkit-outer-spin-button,
+.input-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-subtotal-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.subtotal-label {
+  font-size: 10px;
+  color: var(--neutral-muted);
+}
+
+.subtotal-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.btn-delete-item {
+  width: var(--min-touch-target);
+  height: var(--min-touch-target);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-delete-item:hover, .btn-delete-item:active {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* Empty State Informatif (UX 8) */
+.empty-state {
+  text-align: center;
+  padding: 30px 16px;
+  background-color: var(--neutral-light);
+  border: 1.5px dashed #cbd5e1;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-state.hidden {
+  display: none !important;
+}
+
+.empty-icon {
+  font-size: 40px;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-dark);
+}
+
+.empty-desc {
+  font-size: 12px;
+  color: var(--neutral-muted);
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.btn-scenario {
+  margin-top: 6px;
+  background-color: var(--primary-soft);
+  color: var(--primary-dark);
+  border: 1.5px solid var(--primary-light);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--min-touch-target);
+  transition: all 0.15s;
+}
+
+.btn-scenario:hover, .btn-scenario:active {
+  background-color: #ccfbf1;
+}
+
+/* ==========================================================================
+   Bottom Sticky Summary Bar (UX Mobile Ergonomis)
+   ========================================================================== */
+.sticky-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1.5px solid var(--neutral-border);
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+  z-index: 90;
+}
+
+.sticky-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 60px;
+}
+
+.sticky-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky-label {
+  font-size: 10.5px;
+  color: var(--neutral-muted);
+}
+
+.sticky-total {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+/* ==========================================================================
+   Toast Notification Non-Blocking (UX 8)
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.toast-success {
+  background: #065f46;
+  border-left: 4px solid #34d399;
+}
+
+.toast-error {
+  background: #991b1b;
+  border-left: 4px solid #f87171;
+}
+
+.toast-warning {
+  background: #92400e;
+  border-left: 4px solid #fbbf24;
+}
+
+.toast-info {
+  background: #1e293b;
+  border-left: 4px solid var(--primary-light);
+}
+
+.toast-icon {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Modal Konfirmasi Aman (UX 8)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+}
+
+.modal-overlay.closing {
+  opacity: 0;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 360px;
+  padding: 18px;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+.modal-overlay.open .modal-card {
+  transform: scale(1);
+}
+
+.modal-header {
+  margin-bottom: 8px;
+}
+
+.modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--neutral-dark);
+}
+
+.modal-body p {
+  font-size: 13px;
+  color: var(--neutral-body);
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  height: var(--min-touch-target);
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-secondary {
+  background-color: var(--neutral-light);
+  color: var(--neutral-body);
+  border: 1px solid var(--neutral-border);
+}
+
+.btn-secondary:active {
+  background-color: #e2e8f0;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-danger:active {
+  background-color: #b91c1c;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Responsivitas Mobile 375px & Utility
+   ========================================================================== */
+@media screen and (max-width: 375px) {
+  body {
+    font-size: 13px;
+  }
+  .app-header {
+    padding: 14px 12px;
+  }
+  .app-title {
+    font-size: 15px;
+  }
+  .card {
+    padding: 12px;
+  }
+  .budget-stats-grid {
+    font-size: 11px;
+  }
+  .stat-value {
+    font-size: 11.5px;
+  }
+}

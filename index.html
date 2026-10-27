@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart Grocery & Price Tracker - P15 DT2</title>
+  <meta name="description" content="Aplikasi mobile PWA Smart Grocery & Price Tracker dengan kalkulasi diskon bertingkat kompound, komparasi harga realtime, dan budget safety cap">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Banner Bahaya Melebihi Anggaran (> 100%) (SRS F-05) -->
+    <aside id="danger-banner" class="danger-banner hidden" role="alert" aria-live="assertive">
+      <span class="danger-icon" aria-hidden="true">🚨</span>
+      <span id="danger-banner-text" class="danger-text">Total belanja melebihi batas saldo dompet! Kurangi kuantitas atau batalkan barang sekunder.</span>
+    </aside>
+
+    <!-- Header Aplikasi -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="header-icon" aria-hidden="true">🛒</div>
+        <div>
+          <h1 class="app-title">Smart Grocery &amp; Tracker</h1>
+          <p class="app-subtitle">ICT Codehub • Evaluasi DT2 Kasus Rian</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <!-- 1. Card Sesi Belanja: Toko & Tanggal (SRS F-01) -->
+      <section class="card session-card" aria-label="Sesi Belanja">
+        <div class="card-header">
+          <h2 class="card-title">🏪 Lokasi &amp; Tanggal Belanja</h2>
+        </div>
+        <div class="session-grid">
+          <div class="form-group">
+            <label for="store-select" class="form-label">Supermarket / Toko</label>
+            <select id="store-select" class="form-control" aria-label="Pilih Lokasi Supermarket">
+              <!-- Opsi toko diisi otomatis oleh JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="date-input" class="form-label">Tanggal Transaksi Belanja</label>
+            <input type="date" id="date-input" class="form-control" value="2026-10-26" aria-label="Tanggal Belanja">
+          </div>
+        </div>
+        <div class="hist-info-box">
+          <span aria-hidden="true">📊</span>
+          <span>Komparasi aktif: <strong>Lotte Mart Puri Indah</strong> (Histori: 26 Sept 2026)</span>
+        </div>
+      </section>
+
+      <!-- 2. Card Pengendali Anggaran (Budget Safety Cap) (SRS F-05) -->
+      <section class="card budget-card" aria-label="Pengendali Anggaran">
+        <div class="budget-header-top">
+          <h2 class="card-title">💳 Batas Saldo Dompet</h2>
+          <span id="budget-status-badge" class="status-badge status-safe">Aman</span>
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <label for="budget-limit-input" class="form-label">Batas Anggaran (Rp)</label>
+          <input 
+            type="number" 
+            id="budget-limit-input" 
+            class="form-control" 
+            value="350000" 
+            min="0" 
+            step="5000" 
+            inputmode="numeric" 
+            placeholder="Contoh: 100000 atau 350000"
+            aria-label="Input Batas Saldo Dompet"
+          >
+        </div>
+
+        <!-- Chips Preset Cepat -->
+        <div class="budget-chips" role="group" aria-label="Pilihan Cepat Batas Anggaran">
+          <button type="button" class="chip-budget" data-amount="100000">⚡ Rp 100.000 (Lab Test)</button>
+          <button type="button" class="chip-budget" data-amount="200000">Rp 200.000</button>
+          <button type="button" class="chip-budget" data-amount="350000">Rp 350.000 (Rian Default)</button>
+        </div>
+
+        <!-- Progress Bar Status -->
+        <div class="progress-container" role="progressbar" aria-label="Persentase Anggaran Terpakai" aria-valuemin="0" aria-valuemax="100">
+          <div id="budget-progress-fill" class="progress-fill bar-safe"></div>
+        </div>
+
+        <!-- Statistik Anggaran -->
+        <div class="budget-stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Total Belanja</span>
+            <span id="budget-total-text" class="stat-value">Rp 0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Sisa Saldo</span>
+            <span id="budget-remaining-text" class="stat-value">Sisa Rp 350.000</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Terpakai</span>
+            <span id="budget-percent-text" class="stat-value">0%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Form Input Item Belanja (SRS F-01, F-02, F-03, F-04) -->
+      <section class="card input-card" aria-label="Form Tambah Barang Belanja">
+        <div class="card-header">
+          <h2 class="card-title">➕ Tambah Barang Belanjaan</h2>
+        </div>
+        <form id="item-form" autocomplete="off">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label for="item-name" class="form-label">Nama Barang <span style="color:var(--danger)">*</span></label>
+            <input 
+              type="text" 
+              id="item-name" 
+              class="form-control" 
+              placeholder="Contoh: Beras Rojolele / Minyak Goreng" 
+              required
+            >
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="item-category" class="form-label">Kategori</label>
+              <select id="item-category" class="form-control">
+                <!-- Diisi via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="item-unit" class="form-label">Satuan</label>
+              <select id="item-unit" class="form-control">
+                <!-- Diisi via JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="item-price" class="form-label">Harga Satuan Normal (Rp) <span style="color:var(--danger)">*</span></label>
+              <input 
+                type="number" 
+                id="item-price" 
+                class="form-control" 
+                placeholder="Contoh: 74000" 
+                min="1" 
+                step="500" 
+                inputmode="numeric" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="item-qty" class="form-label">Kuantitas (Qty) <span style="color:var(--danger)">*</span></label>
+              <input 
+                type="number" 
+                id="item-qty" 
+                class="form-control" 
+                value="1" 
+                min="1" 
+                max="999" 
+                inputmode="numeric" 
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="item-discount" class="form-label">Diskon Promo (Opsional: Kompound)</label>
+            <input 
+              type="text" 
+              id="item-discount" 
+              class="form-control" 
+              placeholder="Contoh: 50+20 atau 25% (SRS F-03)"
+            >
+          </div>
+
+          <!-- Live Preview Box Kalkulasi & Komparasi -->
+          <div id="form-preview-box" class="form-preview-box hidden" aria-live="polite"></div>
+
+          <button type="submit" class="btn-submit" id="btn-add-item">
+            <span>+ Masukkan ke Keranjang</span>
+          </button>
+
+          <!-- Shortcut Cepat Barang Uji Lab -->
+          <div class="quick-samples">
+            <span class="quick-label">Uji Lab:</span>
+            <button type="button" id="btn-quick-beras" class="btn-quick">+ Beras Rojolele (Rp 74k)</button>
+            <button type="button" id="btn-quick-minyak" class="btn-quick">+ Minyak 2L (Rp 43k)</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 4. Daftar Keranjang Belanja (SRS F-02, F-04, F-06A) -->
+      <section class="card cart-card" aria-label="Keranjang Belanja">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🛍️ Keranjang Belanja</span>
+            <span id="cart-count-badge" class="badge-count">0 Barang</span>
+          </div>
+          <div class="cart-header-actions">
+            <button type="button" id="btn-clear-cart" class="btn-action-text">Kosongkan</button>
+          </div>
+        </div>
+
+        <!-- Empty State Informatif (UX Skenario 8) -->
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon" aria-hidden="true">🛒</div>
+          <h3 class="empty-title">Keranjang Belanja Kosong</h3>
+          <p class="empty-desc">Keranjang belanja masih kosong, silakan scan atau tambahkan kebutuhan pokok pertamamu</p>
+          <button type="button" id="btn-load-scenario" class="btn-scenario">
+            <span>⭐ Muat Skenario Uji DT2 Kasus Rian</span>
+          </button>
+        </div>
+
+        <!-- Daftar Baris Item Keranjang -->
+        <ul id="cart-items-list" class="cart-items-list" aria-label="Daftar item belanjaan">
+          <!-- Item kartu dirender dinamis oleh JS -->
+        </ul>
+      </section>
+    </main>
+
+    <!-- Sticky Bottom Bar Ringkasan (Ergonomi Mobile Jempol) -->
+    <footer class="sticky-bottom-bar" aria-label="Ringkasan Total Belanja">
+      <div class="sticky-inner">
+        <div class="sticky-left">
+          <span class="sticky-label">Grand Total Tagihan</span>
+          <span id="sticky-total-text" class="sticky-total">Rp 0</span>
+        </div>
+        <div class="sticky-right">
+          <span id="sticky-status-badge" class="status-badge status-safe">Aman</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Script Aplikasi Modular -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
