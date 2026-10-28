@@ -145,6 +145,7 @@ function initDomReferences() {
     btnQuickAddMinyak: document.getElementById('btn-quick-minyak'),
 
     // Tab 2: Riwayat Belanja & Fluktuasi Toko
+    subtabBtnAll: document.getElementById('subtab-btn-all'),
     subtabBtnHistory: document.getElementById('subtab-btn-history'),
     subtabBtnFluctuation: document.getElementById('subtab-btn-fluctuation'),
     viewRiwayatBelanja: document.getElementById('view-riwayat-belanja'),
@@ -1153,26 +1154,17 @@ function bindEventListeners() {
     });
   }
 
-  // 7. Tombol Kosongkan Troli dengan Modal Konfirmasi Aman
+  // 7. Tombol Kosongkan Troli Belanja
   if (dom.btnClearCart) {
-    dom.btnClearCart.addEventListener('click', async () => {
-      if (state.items.length === 0) {
+    dom.btnClearCart.addEventListener('click', () => {
+      if (!state.items || state.items.length === 0) {
         showToast('Keranjang belanja sudah kosong.', 'info');
         return;
       }
-      const confirmed = await showConfirmModal({
-        title: 'Kosongkan Keranjang?',
-        message: 'Seluruh barang belanjaan saat ini akan dihapus dari daftar.',
-        confirmText: 'Ya, Kosongkan',
-        cancelText: 'Batal',
-        isDanger: true
-      });
-      if (confirmed) {
-        state.items = [];
-        state.lastUpdated = Date.now();
-        render(true);
-        showToast('Keranjang belanja berhasil dikosongkan.', 'info');
-      }
+      state.items = [];
+      state.lastUpdated = Date.now();
+      render(true);
+      showToast('🗑️ Seluruh isi keranjang belanja berhasil dikosongkan.', 'success');
     });
   }
 
@@ -1188,21 +1180,21 @@ function bindEventListeners() {
 
       const newReceipt = {
         id: 'receipt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-        storeName: state.storeName || DEFAULT_STORE,
-        shoppingDate: state.shoppingDate || DEFAULT_DATE,
+        storeName: String(state.storeName || DEFAULT_STORE),
+        shoppingDate: String(state.shoppingDate || DEFAULT_DATE),
         timestamp: Date.now(),
-        totalSpent: grandTotal,
-        budgetLimit: state.budgetLimit,
+        totalSpent: Number(grandTotal) || 0,
+        budgetLimit: Number(state.budgetLimit) || DEFAULT_BUDGET,
         isOverBudget: grandTotal > state.budgetLimit,
         itemCount: state.items.length,
         items: state.items.map(item => ({
-          name: item.name,
-          category: item.category,
-          unit: item.unit,
-          quantity: item.quantity,
-          originalPrice: item.originalPrice,
-          finalUnitPrice: item.finalUnitPrice || item.originalPrice,
-          subtotal: item.subtotal
+          name: String(item.name || ''),
+          category: String(item.category || 'Bahan Pokok'),
+          unit: String(item.unit || 'pcs'),
+          quantity: Number(item.quantity) || 1,
+          originalPrice: Number(item.originalPrice) || 0,
+          finalUnitPrice: Number(item.finalUnitPrice) || Number(item.originalPrice) || 0,
+          subtotal: Number(item.subtotal) || 0
         }))
       };
 
@@ -1218,8 +1210,8 @@ function bindEventListeners() {
 
       // Pindahkan langsung ke Tab Riwayat untuk melihat struk
       switchTab('tab-riwayat');
-      if (dom.subtabBtnHistory) {
-        dom.subtabBtnHistory.click();
+      if (dom.subtabBtnAll) {
+        dom.subtabBtnAll.click();
       }
     });
   }
@@ -1296,26 +1288,31 @@ function bindEventListeners() {
     });
   }
 
-  // 10b. Switcher Subtab Riwayat Belanja & Fluktuasi Toko di Tab 2
-  if (dom.subtabBtnHistory && dom.subtabBtnFluctuation) {
-    dom.subtabBtnHistory.addEventListener('click', () => {
-      dom.subtabBtnHistory.classList.add('active');
-      dom.subtabBtnHistory.setAttribute('aria-selected', 'true');
-      dom.subtabBtnFluctuation.classList.remove('active');
-      dom.subtabBtnFluctuation.setAttribute('aria-selected', 'false');
-      if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.remove('hidden');
-      if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.add('hidden');
+  // 10b. Filter Tampilan Riwayat Belanja & Fluktuasi Toko di Tab 2
+  const subtabButtons = [dom.subtabBtnAll, dom.subtabBtnHistory, dom.subtabBtnFluctuation].filter(Boolean);
+  
+  function applyTab2Filter(filterType) {
+    subtabButtons.forEach(btn => {
+      const match = btn.getAttribute('data-filter') === filterType;
+      btn.classList.toggle('active', match);
+      btn.setAttribute('aria-selected', match ? 'true' : 'false');
     });
 
-    dom.subtabBtnFluctuation.addEventListener('click', () => {
-      dom.subtabBtnFluctuation.classList.add('active');
-      dom.subtabBtnFluctuation.setAttribute('aria-selected', 'true');
-      dom.subtabBtnHistory.classList.remove('active');
-      dom.subtabBtnHistory.setAttribute('aria-selected', 'false');
+    if (filterType === 'all') {
+      if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.remove('hidden');
       if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.remove('hidden');
+    } else if (filterType === 'history') {
+      if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.remove('hidden');
+      if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.add('hidden');
+    } else if (filterType === 'fluctuation') {
       if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.add('hidden');
-    });
+      if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.remove('hidden');
+    }
   }
+
+  if (dom.subtabBtnAll) dom.subtabBtnAll.addEventListener('click', () => applyTab2Filter('all'));
+  if (dom.subtabBtnHistory) dom.subtabBtnHistory.addEventListener('click', () => applyTab2Filter('history'));
+  if (dom.subtabBtnFluctuation) dom.subtabBtnFluctuation.addEventListener('click', () => applyTab2Filter('fluctuation'));
 
   // 10c. Delegasi Event Kartu Riwayat Belanja (Accordion, Belanja Ulang, Hapus)
   if (dom.shoppingHistoryContainer) {

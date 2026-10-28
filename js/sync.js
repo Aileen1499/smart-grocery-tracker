@@ -36,12 +36,22 @@ function applyCloudPayload(payload, onCloudDataCallback) {
 
   isUpdatingFromCloud = true;
 
+  const currentLocal = loadState();
+  const incomingHistory = Array.isArray(payload.shoppingHistory) ? payload.shoppingHistory : [];
+  const localHistory = Array.isArray(currentLocal.shoppingHistory) ? currentLocal.shoppingHistory : [];
+
+  // Gabungkan riwayat belanja antar-perangkat tanpa duplikasi ID
+  const historyMap = new Map();
+  incomingHistory.forEach(r => { if (r && r.id) historyMap.set(r.id, r); });
+  localHistory.forEach(r => { if (r && r.id && !historyMap.has(r.id)) historyMap.set(r.id, r); });
+  const mergedHistory = Array.from(historyMap.values()).sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+
   const normalizedState = {
     storeName: payload.storeLocation || payload.storeName || 'Lotte Mart Grocery - Puri Indah',
     shoppingDate: payload.shoppingDate || '2026-10-26',
     budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
     items: Array.isArray(payload.items) ? payload.items : [],
-    shoppingHistory: Array.isArray(payload.shoppingHistory) ? payload.shoppingHistory : [],
+    shoppingHistory: mergedHistory,
     customHistory: payload.customHistory || {},
     lastUpdated: payload.lastUpdated || Date.now(),
     updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
@@ -215,12 +225,22 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
         // Tandai agar tidak terjadi push looping saat merender ulang dari cloud
         isUpdatingFromCloud = true;
 
+        const currentLocal = loadState();
+        const cloudHistory = Array.isArray(cloudData.shoppingHistory) ? cloudData.shoppingHistory : [];
+        const localHistory = Array.isArray(currentLocal.shoppingHistory) ? currentLocal.shoppingHistory : [];
+
+        // Gabungkan riwayat belanja antar-perangkat tanpa duplikasi ID
+        const historyMap = new Map();
+        cloudHistory.forEach(r => { if (r && r.id) historyMap.set(r.id, r); });
+        localHistory.forEach(r => { if (r && r.id && !historyMap.has(r.id)) historyMap.set(r.id, r); });
+        const mergedHistory = Array.from(historyMap.values()).sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+
         const normalizedState = {
           storeName: cloudData.storeLocation || cloudData.storeName || 'Lotte Mart Grocery - Puri Indah',
           shoppingDate: cloudData.shoppingDate || '2026-10-26',
           budgetLimit: typeof cloudData.walletLimit === 'number' ? cloudData.walletLimit : (cloudData.budgetLimit || 350000),
           items: Array.isArray(cloudData.items) ? cloudData.items : [],
-          shoppingHistory: Array.isArray(cloudData.shoppingHistory) ? cloudData.shoppingHistory : [],
+          shoppingHistory: mergedHistory,
           customHistory: cloudData.customHistory || {},
           lastUpdated: Number(cloudData.lastUpdated) || Date.now(),
           updatedByDevice: cloudData.updatedByDevice || 'Cloud Firestore'
@@ -321,6 +341,26 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
   const cleanSession = (sessionId || currentSessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
   const isMobile = typeof navigator !== 'undefined' && /Mobile|Android|iPhone/i.test(navigator.userAgent);
 
+  const cleanShoppingHistory = (state.shoppingHistory || []).map(r => ({
+    id: String(r.id || ('receipt_' + Date.now())),
+    storeName: String(r.storeName || state.storeName || DEFAULT_STORE),
+    shoppingDate: String(r.shoppingDate || state.shoppingDate || DEFAULT_DATE),
+    timestamp: Number(r.timestamp) || Date.now(),
+    totalSpent: Number(r.totalSpent) || 0,
+    budgetLimit: Number(r.budgetLimit) || 350000,
+    isOverBudget: Boolean(r.isOverBudget),
+    itemCount: Number(r.itemCount) || ((r.items && r.items.length) ? r.items.length : 0),
+    items: (r.items || []).map(i => ({
+      name: String(i.name || ''),
+      category: String(i.category || 'Bahan Pokok'),
+      unit: String(i.unit || 'pcs'),
+      quantity: Number(i.quantity) || 1,
+      originalPrice: Number(i.originalPrice) || 0,
+      finalUnitPrice: Number(i.finalUnitPrice) || Number(i.originalPrice) || 0,
+      subtotal: Number(i.subtotal) || 0
+    }))
+  }));
+
   const payload = {
     senderId: myClientId,
     sessionId: sessionId || currentSessionId,
@@ -341,7 +381,7 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
       subtotal: Number(item.subtotal) || 0
     })),
     customHistory: state.customHistory || {},
-    shoppingHistory: Array.isArray(state.shoppingHistory) ? state.shoppingHistory : [],
+    shoppingHistory: cleanShoppingHistory,
     totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),
     lastUpdated: now,
     updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
@@ -350,9 +390,14 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
   // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
   try {
     if (typeof window !== 'undefined' && window.fetch) {
+      const bridgePayload = {
+        ...payload,
+        shoppingHistory: cleanShoppingHistory.slice(0, 5) // Maks 5 struk terbaru agar ukuran pesan pas
+      };
       fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bridgePayload)
       }).catch(() => {});
     }
   } catch (e) {}

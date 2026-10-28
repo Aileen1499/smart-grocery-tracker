@@ -444,23 +444,16 @@
            TAB 2: RIWAYAT TOKO (Price Tracker & History Fluctuation)
            ==================================================================== -->
       <section id="tab-riwayat" class="tab-view" aria-label="Tab Riwayat Belanja dan Toko">
-        <!-- Segmented Subnav Tab 2 -->
+        <!-- Filter Bar Tab 2: Riwayat Belanja & Fluktuasi Toko -->
         <div class="subtab-segmented-bar" role="tablist">
-          <button type="button" id="subtab-btn-history" class="subtab-btn active" role="tab" aria-selected="true" data-subtab="view-riwayat-belanja">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
+          <button type="button" id="subtab-btn-all" class="subtab-btn active" role="tab" aria-selected="true" data-filter="all">
+            <span>Semua</span>
+          </button>
+          <button type="button" id="subtab-btn-history" class="subtab-btn" role="tab" aria-selected="false" data-filter="history">
             <span>Riwayat Belanja</span>
             <span id="badge-history-count" class="subtab-counter">0</span>
           </button>
-          <button type="button" id="subtab-btn-fluctuation" class="subtab-btn" role="tab" aria-selected="false" data-subtab="view-fluktuasi-toko">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-              <polyline points="16 7 22 7 22 13"></polyline>
-            </svg>
+          <button type="button" id="subtab-btn-fluctuation" class="subtab-btn" role="tab" aria-selected="false" data-filter="fluctuation">
             <span>Fluktuasi Harga</span>
           </button>
         </div>
@@ -490,7 +483,7 @@
         </div>
 
         <!-- Subview 2: Fluktuasi Harga Realtime (Fitur SRS F-04) -->
-        <div id="view-fluktuasi-toko" class="subtab-view-content hidden">
+        <div id="view-fluktuasi-toko" class="subtab-view-content">
         <div class="native-card">
           <div class="card-title-row">
             <h2 class="card-h2">

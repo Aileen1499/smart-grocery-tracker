@@ -685,12 +685,12 @@ body {
 /* Subtab Segmented Switcher di Tab 2 */
 .subtab-segmented-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.8fr 1.3fr 1.3fr;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 4px;
-  gap: 6px;
+  gap: 4px;
   margin-bottom: 14px;
 }
 
