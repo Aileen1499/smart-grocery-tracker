@@ -132,7 +132,10 @@ function initDomReferences() {
     itemPriceHelper: document.getElementById('item-price-helper'),
     itemDiscountInput: document.getElementById('item-discount'),
     formPreviewBox: document.getElementById('form-preview-box'),
-    btnToggleForm: document.getElementById('btn-toggle-form'),
+    fabAddItem: document.getElementById('fab-add-item'),
+    itemNameError: document.getElementById('item-name-error'),
+    itemPriceError: document.getElementById('item-price-error'),
+    itemQtyError: document.getElementById('item-qty-error'),
 
     // Keranjang Belanja
     cartCountBadge: document.getElementById('cart-count-badge'),
@@ -806,10 +809,17 @@ function handleAddItem(event) {
     nameInput?.classList.remove('input-error');
     priceInput?.classList.remove('input-error');
     qtyInput?.classList.remove('input-error');
+    if (dom.itemNameError) dom.itemNameError.classList.add('hidden');
+    if (dom.itemPriceError) dom.itemPriceError.classList.add('hidden');
+    if (dom.itemQtyError) dom.itemQtyError.classList.add('hidden');
 
     // 1. VALIDASI NAMA BARANG KOSONG (Wajib menolak dengan pesan jelas, tidak menambah data)
     if (!name) {
       nameInput?.classList.add('input-error');
+      if (dom.itemNameError) {
+        dom.itemNameError.textContent = 'Nama barang wajib diisi!';
+        dom.itemNameError.classList.remove('hidden');
+      }
       nameInput?.focus();
       showToast('⚠️ Nama barang wajib diisi! Harap masukkan nama barang belanjaan.', 'error');
       return;
@@ -821,6 +831,10 @@ function handleAddItem(event) {
 
     if (isNegative || parsedPrice < 0) {
       priceInput?.classList.add('input-error');
+      if (dom.itemPriceError) {
+        dom.itemPriceError.textContent = 'Harga barang tidak boleh minus (-Rp 15.000)!';
+        dom.itemPriceError.classList.remove('hidden');
+      }
       priceInput?.focus();
       showToast('⚠️ Input Ditolak: Harga barang tidak boleh bernilai negatif (-Rp 15.000)! Masukkan harga positif.', 'error');
       return;
@@ -828,6 +842,10 @@ function handleAddItem(event) {
 
     if (parsedPrice <= 0) {
       priceInput?.classList.add('input-error');
+      if (dom.itemPriceError) {
+        dom.itemPriceError.textContent = 'Harga barang harus lebih dari Rp 0!';
+        dom.itemPriceError.classList.remove('hidden');
+      }
       priceInput?.focus();
       showToast('⚠️ Input Ditolak: Harga barang wajib diisi dengan nominal angka lebih dari Rp 0!', 'error');
       return;
@@ -837,6 +855,10 @@ function handleAddItem(event) {
     const qty = parseInt(qtyRaw, 10);
     if (isNaN(qty) || qty <= 0) {
       qtyInput?.classList.add('input-error');
+      if (dom.itemQtyError) {
+        dom.itemQtyError.textContent = 'Kuantitas minimal 1!';
+        dom.itemQtyError.classList.remove('hidden');
+      }
       qtyInput?.focus();
       showToast('⚠️ Input Ditolak: Kuantitas barang minimal 1!', 'error');
       return;
@@ -860,6 +882,9 @@ function handleAddItem(event) {
 
     // Reset form secara bersih
     if (dom.itemForm) dom.itemForm.reset();
+    if (dom.itemNameError) dom.itemNameError.classList.add('hidden');
+    if (dom.itemPriceError) dom.itemPriceError.classList.add('hidden');
+    if (dom.itemQtyError) dom.itemQtyError.classList.add('hidden');
     if (dom.itemQtyInput) dom.itemQtyInput.value = '1';
     if (dom.itemPriceInput) dom.itemPriceInput.value = '';
     if (dom.itemPriceHelper) {
@@ -1095,17 +1120,43 @@ function bindEventListeners() {
   if (dom.itemNameInput) {
     dom.itemNameInput.addEventListener('input', () => {
       dom.itemNameInput.classList.remove('input-error');
+      if (dom.itemNameError) dom.itemNameError.classList.add('hidden');
       updateFormPreview();
     });
   }
 
   if (dom.itemPriceInput) {
-    dom.itemPriceInput.addEventListener('input', handlePriceInput);
+    dom.itemPriceInput.addEventListener('input', (e) => {
+      dom.itemPriceInput.classList.remove('input-error');
+      if (dom.itemPriceError) dom.itemPriceError.classList.add('hidden');
+      handlePriceInput(e);
+    });
+  }
+
+  if (dom.itemQtyInput) {
+    dom.itemQtyInput.addEventListener('input', () => {
+      dom.itemQtyInput.classList.remove('input-error');
+      if (dom.itemQtyError) dom.itemQtyError.classList.add('hidden');
+    });
   }
 
   if (dom.itemDiscountInput) {
     dom.itemDiscountInput.addEventListener('input', updateFormPreview);
   }
+
+  // Tangani tombol Enter pada seluruh input form secara independen tanpa submit native browser
+  [dom.itemNameInput, dom.itemPriceInput, dom.itemQtyInput, dom.itemDiscountInput].forEach(inp => {
+    if (inp) {
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (!isSubmittingItem) {
+            handleAddItem(e);
+          }
+        }
+      });
+    }
+  });
 
   // 3. Kontrol kuantitas, edit, dan hapus di daftar troli
   if (dom.cartItemsList) {
@@ -1379,15 +1430,19 @@ function bindEventListeners() {
     });
   });
 
-  // 12. Tombol Minimize/Ringkas Form
-  if (dom.btnToggleForm) {
-    dom.btnToggleForm.addEventListener('click', () => {
-      if (dom.itemForm.style.display === 'none') {
-        dom.itemForm.style.display = 'block';
-        dom.btnToggleForm.textContent = 'Ringkas';
-      } else {
-        dom.itemForm.style.display = 'none';
-        dom.btnToggleForm.textContent = 'Buka Form';
+  // 12. Floating Action Button (FAB) Tambah Barang Mobile
+  if (dom.fabAddItem) {
+    dom.fabAddItem.addEventListener('click', () => {
+      switchTab('tab-belanja');
+      const formCard = dom.itemForm ? dom.itemForm.closest('.native-card') : null;
+      if (formCard) {
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        formCard.classList.remove('form-highlight-pulse');
+        void formCard.offsetWidth;
+        formCard.classList.add('form-highlight-pulse');
+      }
+      if (dom.itemNameInput) {
+        setTimeout(() => dom.itemNameInput.focus(), 300);
       }
     });
   }
