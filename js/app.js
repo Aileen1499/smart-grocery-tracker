@@ -139,11 +139,18 @@ function initDomReferences() {
     cartItemsList: document.getElementById('cart-items-list'),
     emptyStateContainer: document.getElementById('empty-state'),
     btnClearCart: document.getElementById('btn-clear-cart'),
+    btnFinishShopping: document.getElementById('btn-finish-shopping'),
     btnLoadScenario: document.getElementById('btn-load-scenario'),
     btnQuickAddBeras: document.getElementById('btn-quick-beras'),
     btnQuickAddMinyak: document.getElementById('btn-quick-minyak'),
 
-    // Tab 2: Riwayat Toko
+    // Tab 2: Riwayat Belanja & Fluktuasi Toko
+    subtabBtnHistory: document.getElementById('subtab-btn-history'),
+    subtabBtnFluctuation: document.getElementById('subtab-btn-fluctuation'),
+    viewRiwayatBelanja: document.getElementById('view-riwayat-belanja'),
+    viewFluktuasiToko: document.getElementById('view-fluktuasi-toko'),
+    shoppingHistoryContainer: document.getElementById('shopping-history-container'),
+    badgeHistoryCount: document.getElementById('badge-history-count'),
     riwayatStoreTag: document.getElementById('riwayat-store-tag'),
     compCurrDate: document.getElementById('comp-curr-date'),
     compPastDate: document.getElementById('comp-past-date'),
@@ -306,8 +313,9 @@ function render(pushToCloud = true) {
     }
   }
 
-  // 6. Render Tab 2: Riwayat Toko (Katalog Fluktuasi Harga Realtime)
+  // 6. Render Tab 2: Riwayat Toko & Fluktuasi Harga Realtime
   renderHistoryCatalog();
+  renderShoppingHistory();
 
   // 7. Persistensi Lokal (Tahan F5 saat offline)
   saveState(state);
@@ -518,6 +526,101 @@ function renderHistoryCatalog() {
 }
 
 /**
+ * Merender daftar struk transaksi belanja yang telah selesai di Tab 2 (Riwayat Belanja)
+ */
+function renderShoppingHistory() {
+  const historyList = Array.isArray(state.shoppingHistory) ? state.shoppingHistory : [];
+
+  if (dom.badgeHistoryCount) {
+    dom.badgeHistoryCount.textContent = historyList.length;
+  }
+
+  if (!dom.shoppingHistoryContainer) return;
+
+  if (historyList.length === 0) {
+    dom.shoppingHistoryContainer.innerHTML = `
+      <div class="empty-history-box">
+        <div class="empty-history-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+        </div>
+        <h4 style="font-size: 13.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">Belum Ada Riwayat Belanja</h4>
+        <p style="font-size: 12px; color: #64748b; margin: 0;">Selesaikan belanja di tab Belanja dan klik tombol <strong>"Selesaikan Belanja &amp; Simpan Riwayat"</strong> untuk merekam struk di sini.</p>
+      </div>
+    `;
+    return;
+  }
+
+  dom.shoppingHistoryContainer.innerHTML = historyList.map((receipt) => {
+    const isOver = receipt.isOverBudget || (receipt.budgetLimit && receipt.totalSpent > receipt.budgetLimit);
+    const budgetStatusBadge = isOver
+      ? `<span class="receipt-budget-badge over">⚠️ Melebihi Anggaran</span>`
+      : `<span class="receipt-budget-badge safe">✅ Sesuai Anggaran</span>`;
+
+    const itemsSummary = (receipt.items || []).map(i => `${escapeHtml(i.name)} (${i.quantity} ${escapeHtml(i.unit || 'pcs')})`).join(', ');
+
+    const itemsRowsHtml = (receipt.items || []).map(item => `
+      <div class="receipt-item-row">
+        <span>${escapeHtml(item.name)} <small style="color:#64748b">× ${item.quantity} ${escapeHtml(item.unit || '')}</small></span>
+        <strong>${formatRupiah(item.subtotal || (item.quantity * (item.finalUnitPrice || item.originalPrice || 0)))}</strong>
+      </div>
+    `).join('');
+
+    return `
+      <div class="shopping-receipt-card" data-receipt-id="${receipt.id}">
+        <div class="receipt-header-row">
+          <div class="receipt-store-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+              <path d="M2 7h20"/>
+            </svg>
+            <span>${escapeHtml(receipt.storeName || 'Supermarket')}</span>
+          </div>
+          <span class="receipt-date-badge">${escapeHtml(receipt.shoppingDate || 'Hari ini')}</span>
+        </div>
+
+        <div class="receipt-stats-row">
+          <div class="receipt-total-block">
+            <span class="receipt-total-label">Total Belanja</span>
+            <span class="receipt-total-val">${formatRupiah(receipt.totalSpent || 0)}</span>
+          </div>
+          <div>
+            ${budgetStatusBadge}
+          </div>
+        </div>
+
+        <div class="receipt-items-preview">
+          <strong>${receipt.itemCount || (receipt.items ? receipt.items.length : 0)} Barang:</strong> ${escapeHtml(itemsSummary)}
+        </div>
+
+        <button type="button" class="receipt-items-accordion-btn" data-target="detail-${receipt.id}">
+          <span>Tampilkan Rincian Lengkap</span> ▼
+        </button>
+
+        <div id="detail-${receipt.id}" class="receipt-items-detail-list hidden">
+          ${itemsRowsHtml}
+        </div>
+
+        <div class="receipt-actions-row">
+          <button type="button" class="btn-receipt-reload" data-id="${receipt.id}" title="Muat barang belanjaan ini ke Troli">
+            🔄 Belanja Ulang
+          </button>
+          <button type="button" class="btn-receipt-delete" data-id="${receipt.id}" title="Hapus catatan ini">
+            🗑️ Hapus
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
  * Sanitasi string HTML untuk mencegah XSS
  */
 function escapeHtml(str) {
@@ -532,14 +635,17 @@ function escapeHtml(str) {
 
 /**
  * Mengupdate status indikator badge sinkronisasi Cloud Firestore di header
+ * Menampilkan pulsing glowing dot minimalis tanpa teks clunky
  */
 function updateSyncStatusBadge(status) {
   currentSyncStatus = status;
-  if (!dom.cloudSyncBadge || !dom.syncStatusText) return;
+  if (!dom.cloudSyncBadge) return;
 
-  dom.syncStatusText.textContent = status.label;
-  dom.cloudSyncBadge.className = `cloud-sync-pill ${status.badgeClass || 'badge-live'}`;
-  dom.cloudSyncBadge.title = status.details || status.label;
+  if (dom.syncStatusText) {
+    dom.syncStatusText.textContent = '';
+  }
+  dom.cloudSyncBadge.className = `sync-indicator-dot ${status.badgeClass || 'badge-live'}`;
+  dom.cloudSyncBadge.title = status.details || status.label || 'Tersinkronisasi Realtime';
 }
 
 /**
@@ -1070,6 +1176,54 @@ function bindEventListeners() {
     });
   }
 
+  // 7b. Tombol Selesaikan Belanja & Simpan Riwayat
+  if (dom.btnFinishShopping) {
+    dom.btnFinishShopping.addEventListener('click', () => {
+      if (!state.items || state.items.length === 0) {
+        showToast('⚠️ Troli belanja masih kosong! Tambahkan barang terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const { grandTotal, budgetEvaluation } = recalculateAll();
+
+      const newReceipt = {
+        id: 'receipt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        storeName: state.storeName || DEFAULT_STORE,
+        shoppingDate: state.shoppingDate || DEFAULT_DATE,
+        timestamp: Date.now(),
+        totalSpent: grandTotal,
+        budgetLimit: state.budgetLimit,
+        isOverBudget: grandTotal > state.budgetLimit,
+        itemCount: state.items.length,
+        items: state.items.map(item => ({
+          name: item.name,
+          category: item.category,
+          unit: item.unit,
+          quantity: item.quantity,
+          originalPrice: item.originalPrice,
+          finalUnitPrice: item.finalUnitPrice || item.originalPrice,
+          subtotal: item.subtotal
+        }))
+      };
+
+      if (!Array.isArray(state.shoppingHistory)) {
+        state.shoppingHistory = [];
+      }
+
+      state.shoppingHistory.unshift(newReceipt);
+      state.lastUpdated = Date.now();
+      render(true);
+
+      showToast(`🎉 Struk belanja di ${newReceipt.storeName} (${formatRupiah(grandTotal)}) berhasil dicatat ke Riwayat!`, 'success');
+
+      // Pindahkan langsung ke Tab Riwayat untuk melihat struk
+      switchTab('tab-riwayat');
+      if (dom.subtabBtnHistory) {
+        dom.subtabBtnHistory.click();
+      }
+    });
+  }
+
   // 8. Tombol Muat Skenario Uji DT2
   if (dom.btnLoadScenario) {
     dom.btnLoadScenario.addEventListener('click', loadScenarioDT2);
@@ -1138,6 +1292,82 @@ function bindEventListeners() {
         render(true);
         switchTab('tab-belanja');
         showToast(`✅ "${name}" (${formatRupiah(price)}) berhasil dimasukkan ke keranjang`, 'success');
+      }
+    });
+  }
+
+  // 10b. Switcher Subtab Riwayat Belanja & Fluktuasi Toko di Tab 2
+  if (dom.subtabBtnHistory && dom.subtabBtnFluctuation) {
+    dom.subtabBtnHistory.addEventListener('click', () => {
+      dom.subtabBtnHistory.classList.add('active');
+      dom.subtabBtnHistory.setAttribute('aria-selected', 'true');
+      dom.subtabBtnFluctuation.classList.remove('active');
+      dom.subtabBtnFluctuation.setAttribute('aria-selected', 'false');
+      if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.remove('hidden');
+      if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.add('hidden');
+    });
+
+    dom.subtabBtnFluctuation.addEventListener('click', () => {
+      dom.subtabBtnFluctuation.classList.add('active');
+      dom.subtabBtnFluctuation.setAttribute('aria-selected', 'true');
+      dom.subtabBtnHistory.classList.remove('active');
+      dom.subtabBtnHistory.setAttribute('aria-selected', 'false');
+      if (dom.viewFluktuasiToko) dom.viewFluktuasiToko.classList.remove('hidden');
+      if (dom.viewRiwayatBelanja) dom.viewRiwayatBelanja.classList.add('hidden');
+    });
+  }
+
+  // 10c. Delegasi Event Kartu Riwayat Belanja (Accordion, Belanja Ulang, Hapus)
+  if (dom.shoppingHistoryContainer) {
+    dom.shoppingHistoryContainer.addEventListener('click', (e) => {
+      // Toggle detail rincian
+      const accordionBtn = e.target.closest('.receipt-items-accordion-btn');
+      if (accordionBtn) {
+        const targetId = accordionBtn.getAttribute('data-target');
+        const detailEl = document.getElementById(targetId);
+        if (detailEl) {
+          const isHidden = detailEl.classList.contains('hidden');
+          detailEl.classList.toggle('hidden');
+          accordionBtn.innerHTML = isHidden 
+            ? '<span>Sembunyikan Rincian</span> ▲' 
+            : '<span>Tampilkan Rincian Lengkap</span> ▼';
+        }
+        return;
+      }
+
+      // Tombol Belanja Ulang (Muat kembali ke Troli)
+      const reloadBtn = e.target.closest('.btn-receipt-reload');
+      if (reloadBtn) {
+        const receiptId = reloadBtn.getAttribute('data-id');
+        const receipt = (state.shoppingHistory || []).find(r => r.id === receiptId);
+        if (receipt && Array.isArray(receipt.items) && receipt.items.length > 0) {
+          state.storeName = receipt.storeName || state.storeName;
+          state.items = receipt.items.map(i => ({
+            id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            name: i.name,
+            category: i.category || 'Bahan Pokok',
+            unit: i.unit || 'pcs',
+            quantity: i.quantity || 1,
+            originalPrice: i.originalPrice || i.finalUnitPrice || 0,
+            discountInput: ''
+          }));
+          state.lastUpdated = Date.now();
+          render(true);
+          switchTab('tab-belanja');
+          showToast(`🛒 Berhasil memuat ${receipt.items.length} barang dari struk ${receipt.storeName}!`, 'success');
+        }
+        return;
+      }
+
+      // Tombol Hapus Riwayat
+      const delBtn = e.target.closest('.btn-receipt-delete');
+      if (delBtn) {
+        const receiptId = delBtn.getAttribute('data-id');
+        state.shoppingHistory = (state.shoppingHistory || []).filter(r => r.id !== receiptId);
+        state.lastUpdated = Date.now();
+        render(true);
+        showToast('🗑️ Catatan riwayat belanja berhasil dihapus.', 'info');
+        return;
       }
     });
   }
@@ -1330,6 +1560,8 @@ function bindEventListeners() {
     dom.btnAuthSkipGuest.addEventListener('click', () => {
       if (dom.authScreen) dom.authScreen.classList.add('hidden');
       if (dom.mainAppContent) dom.mainAppContent.classList.remove('hidden');
+      if (dom.headerUserBadge) dom.headerUserBadge.classList.remove('hidden');
+      if (dom.headerUserName) dom.headerUserName.textContent = 'Mode Tamu';
       showToast('Masuk dalam mode Tamu (Kasus Belanja Rian)', 'info');
     });
   }
@@ -1354,7 +1586,7 @@ function updateAuthUI(userInfo) {
     if (dom.headerUserBadge) dom.headerUserBadge.classList.remove('hidden');
     if (dom.headerUserName) dom.headerUserName.textContent = userInfo.name || userInfo.email;
   } else {
-    // Pengguna belum login: Tampilkan Layar Auth KeranjangPintar
+    // Pengguna belum login: Tampilkan Layar Auth GroceryTracker
     if (dom.authScreen) dom.authScreen.classList.remove('hidden');
     if (dom.mainAppContent) dom.mainAppContent.classList.add('hidden');
 
@@ -1399,9 +1631,6 @@ function applyUserLogin(user) {
       updateSyncStatusBadge(status);
     }
   );
-
-  // Push state terkini ke room akun agar HP/PC langsung ter-update
-  pushStateToFirestore(state, cleanSession);
 }
 
 /**

@@ -43,8 +43,8 @@ export function findHistoricalPrice(itemName, storeName = DEFAULT_STORE, referen
     if (found) return found;
   }
 
-  // 2. Cek pada baseline histori bawaan modul (SSOT Lotte Mart Grocery - Puri Indah)
-  const storeData = HISTORICAL_PRICES[storeName];
+  // 2. Cek pada baseline histori bawaan modul toko yang dipilih
+  const storeData = HISTORICAL_PRICES[storeName] || HISTORICAL_PRICES[DEFAULT_STORE];
   if (storeData) {
     const list = storeData[referenceDate] || storeData[HISTORICAL_DATE];
     if (list) {
@@ -59,6 +59,28 @@ export function findHistoricalPrice(itemName, storeName = DEFAULT_STORE, referen
       // Jika belum ketemu, coba substring matching
       if (!match) {
         match = list.find(item => {
+          const normItem = normalizeName(item.name);
+          return normInput.includes(normItem) || normItem.includes(normInput);
+        });
+      }
+
+      if (match) return match;
+    }
+  }
+
+  // 3. Fallback ke baseline toko default jika toko yang dipilih belum memuat item ini
+  if (storeName !== DEFAULT_STORE && HISTORICAL_PRICES[DEFAULT_STORE]) {
+    const defaultList = HISTORICAL_PRICES[DEFAULT_STORE][referenceDate] || HISTORICAL_PRICES[DEFAULT_STORE][HISTORICAL_DATE];
+    if (defaultList) {
+      let match = defaultList.find(item => {
+        const normItem = normalizeName(item.name);
+        if (normItem === normInput) return true;
+        if (item.aliases && item.aliases.some(a => normalizeName(a) === normInput)) return true;
+        return false;
+      });
+
+      if (!match) {
+        match = defaultList.find(item => {
           const normItem = normalizeName(item.name);
           return normInput.includes(normItem) || normItem.includes(normInput);
         });
@@ -225,7 +247,7 @@ export function comparePrice(itemName, currentPrice, storeName = DEFAULT_STORE, 
  * @returns {Array} Daftar item katalog dan harga histori
  */
 export function getStorePriceCatalog(storeName = DEFAULT_STORE, referenceDate = HISTORICAL_DATE) {
-  const storeData = HISTORICAL_PRICES[storeName];
+  const storeData = HISTORICAL_PRICES[storeName] || HISTORICAL_PRICES[DEFAULT_STORE];
   if (!storeData) return [];
   return storeData[referenceDate] || storeData[HISTORICAL_DATE] || [];
 }

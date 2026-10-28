@@ -17,6 +17,7 @@ export function getDefaultState() {
     shoppingDate: DEFAULT_DATE,
     budgetLimit: DEFAULT_BUDGET,
     items: [],
+    shoppingHistory: [],
     customHistory: {},
     lastUpdated: Date.now()
   };
@@ -41,6 +42,7 @@ export function loadState() {
       shoppingDate: parsed.shoppingDate || DEFAULT_DATE,
       budgetLimit: typeof parsed.budgetLimit === 'number' ? parsed.budgetLimit : DEFAULT_BUDGET,
       items: Array.isArray(parsed.items) ? parsed.items : [],
+      shoppingHistory: Array.isArray(parsed.shoppingHistory) ? parsed.shoppingHistory : [],
       customHistory: parsed.customHistory || {},
       lastUpdated: parsed.lastUpdated || Date.now()
     };

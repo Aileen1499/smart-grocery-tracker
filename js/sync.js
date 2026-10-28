@@ -41,6 +41,7 @@ function applyCloudPayload(payload, onCloudDataCallback) {
     shoppingDate: payload.shoppingDate || '2026-10-26',
     budgetLimit: typeof payload.walletLimit === 'number' ? payload.walletLimit : (payload.budgetLimit || 350000),
     items: Array.isArray(payload.items) ? payload.items : [],
+    shoppingHistory: Array.isArray(payload.shoppingHistory) ? payload.shoppingHistory : [],
     customHistory: payload.customHistory || {},
     lastUpdated: payload.lastUpdated || Date.now(),
     updatedByDevice: payload.updatedByDevice || 'Perangkat Lain'
@@ -206,12 +207,8 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
       if (docSnap.exists()) {
         const cloudData = docSnap.data();
 
-        const localState = loadState();
-        const cloudTime = Number(cloudData.lastUpdated) || 0;
-        const localTime = Number(localState.lastUpdated) || 0;
-
-        // Jangan timpa state lokal jika state lokal lebih baru daripada cloud
-        if (cloudTime && localTime && cloudTime < localTime) {
+        // Abaikan echo update yang berasal dari tab/perangkat ini sendiri
+        if (cloudData.senderId && cloudData.senderId === myClientId) {
           return;
         }
 
@@ -223,8 +220,9 @@ export function initFirestoreRealtimeSync(sessionId = DEFAULT_SESSION_ID, onClou
           shoppingDate: cloudData.shoppingDate || '2026-10-26',
           budgetLimit: typeof cloudData.walletLimit === 'number' ? cloudData.walletLimit : (cloudData.budgetLimit || 350000),
           items: Array.isArray(cloudData.items) ? cloudData.items : [],
+          shoppingHistory: Array.isArray(cloudData.shoppingHistory) ? cloudData.shoppingHistory : [],
           customHistory: cloudData.customHistory || {},
-          lastUpdated: cloudTime || Date.now(),
+          lastUpdated: Number(cloudData.lastUpdated) || Date.now(),
           updatedByDevice: cloudData.updatedByDevice || 'Cloud Firestore'
         };
 
@@ -343,6 +341,7 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
       subtotal: Number(item.subtotal) || 0
     })),
     customHistory: state.customHistory || {},
+    shoppingHistory: Array.isArray(state.shoppingHistory) ? state.shoppingHistory : [],
     totalSpent: (state.items || []).reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0),
     lastUpdated: now,
     updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'

@@ -175,42 +175,46 @@ body {
   font-weight: 500;
 }
 
-.cloud-sync-pill {
+/* Futuristic Cloud Sync Dot & Status */
+.sync-indicator-dot {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  position: relative;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  transition: all 0.2s;
 }
 
-.cloud-sync-pill.badge-live {
-  background: rgba(16, 185, 129, 0.25);
-  color: #a7f3d0;
-  border-color: #34d399;
-}
-
-.cloud-sync-pill.badge-connecting {
-  background: rgba(245, 158, 11, 0.25);
-  color: #fde68a;
-  border-color: #f59e0b;
-}
-
-.cloud-sync-pill.badge-offline {
-  background: rgba(148, 163, 184, 0.25);
-  color: #e2e8f0;
-  border-color: #94a3b8;
-}
-
-.sync-dot {
-  width: 6px;
-  height: 6px;
+.sync-dot-pulse {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: currentColor;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 4px #10b981; }
+  50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 10px #10b981, 0 0 16px rgba(16, 185, 129, 0.4); }
+  100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 4px #10b981; }
+}
+
+.sync-indicator-dot.badge-connecting .sync-dot-pulse {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: pulse-connecting 1s infinite alternate;
+}
+
+.sync-indicator-dot.badge-offline .sync-dot-pulse {
+  background-color: #94a3b8;
+  box-shadow: none;
+  animation: none;
+}
+
+.cloud-sync-pill {
+  display: none !important;
 }
 
 .session-meta-strip {
@@ -587,41 +591,332 @@ body {
   color: #18181b;
 }
 
-/* Header User Badge on Homepage */
+/* Futuristic Header User Pill on Homepage */
+.header-user-pill,
 .header-user-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-pill);
-  padding: 3px 8px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 4px 10px 4px 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.header-user-pill:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .header-user-name {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
-  max-width: 100px;
+  letter-spacing: 0.2px;
+  max-width: 110px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.btn-header-logout {
-  background: rgba(220, 38, 38, 0.75);
+.btn-logout-icon {
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   border: none;
-  border-radius: 12px;
-  font-size: 9.5px;
-  font-weight: 700;
-  padding: 2px 6px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
 }
 
-.btn-header-logout:hover {
-  background: rgba(220, 38, 38, 1);
+.btn-logout-icon:hover {
+  background: rgba(239, 68, 68, 0.85);
+  transform: rotate(5deg) scale(1.05);
+}
+
+.btn-header-logout {
+  display: none !important;
+}
+
+/* Tombol Selesaikan Belanja & Simpan Riwayat */
+.cart-finish-action-wrap {
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+.btn-finish-shopping {
+  width: 100%;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-finish-shopping:hover {
+  background: linear-gradient(135deg, #115e59 0%, #0f766e 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.35);
+}
+
+.btn-finish-shopping:active {
+  transform: scale(0.98);
+}
+
+/* Subtab Segmented Switcher di Tab 2 */
+.subtab-segmented-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 4px;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.subtab-btn {
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subtab-btn.active {
+  background: #ffffff;
+  color: #0f766e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.subtab-counter {
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.subtab-btn.active .subtab-counter {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+/* Riwayat Belanja Cards (Futuristic Receipts) */
+.shopping-history-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.shopping-receipt-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.shopping-receipt-card:hover {
+  border-color: #0f766e;
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.1);
+}
+
+.receipt-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.receipt-store-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.receipt-date-badge {
+  font-size: 11px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.receipt-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #e2e8f0;
+  margin-bottom: 10px;
+}
+
+.receipt-total-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.receipt-total-label {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.receipt-total-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f766e;
+}
+
+.receipt-budget-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.receipt-budget-badge.safe {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.receipt-budget-badge.over {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.receipt-items-preview {
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.receipt-items-accordion-btn {
+  background: transparent;
+  border: none;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f766e;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.receipt-items-detail-list {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.receipt-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: #334155;
+}
+
+.receipt-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-receipt-reload {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-receipt-reload:hover {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.btn-receipt-delete {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 4px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.btn-receipt-delete:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.empty-history-box {
+  text-align: center;
+  padding: 30px 16px;
+  color: #64748b;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.empty-history-icon {
+  margin-bottom: 8px;
+  color: #94a3b8;
 }
 
 .mode-badge {
