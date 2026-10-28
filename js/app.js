@@ -82,21 +82,34 @@ function initDomReferences() {
     dangerBanner: document.getElementById('danger-banner'),
     dangerBannerText: document.getElementById('danger-banner-text'),
 
+    // Auth Screen (KeranjangPintar Login & Sign Up)
+    authScreen: document.getElementById('auth-screen'),
+    mainAppContent: document.getElementById('main-app-content'),
+    tabBtnMasuk: document.getElementById('tab-btn-masuk'),
+    tabBtnDaftar: document.getElementById('tab-btn-daftar'),
+    formAuthLogin: document.getElementById('form-auth-login'),
+    formAuthDaftar: document.getElementById('form-auth-daftar'),
+    loginUsername: document.getElementById('login-username'),
+    loginPassword: document.getElementById('login-password'),
+    btnToggleLoginPass: document.getElementById('btn-toggle-login-pass'),
+    btnSubmitMasuk: document.getElementById('btn-submit-masuk'),
+    btnAuthGoogleLogin: document.getElementById('btn-auth-google-login'),
+    regFullname: document.getElementById('reg-fullname'),
+    regUsername: document.getElementById('reg-username'),
+    regPassword: document.getElementById('reg-password'),
+    btnToggleRegPass: document.getElementById('btn-toggle-reg-pass'),
+    btnSubmitDaftar: document.getElementById('btn-submit-daftar'),
+    btnAuthGoogleRegister: document.getElementById('btn-auth-google-register'),
+    btnAuthSkipGuest: document.getElementById('btn-auth-skip-guest'),
+    headerUserBadge: document.getElementById('header-user-badge'),
+    headerUserName: document.getElementById('header-user-name'),
+    btnHeaderLogout: document.getElementById('btn-header-logout'),
+
     // Cloud Sync Badge & Session Strip
     cloudSyncBadge: document.getElementById('cloud-sync-badge'),
     syncStatusText: document.getElementById('sync-status-text'),
     currentSessionLabel: document.getElementById('current-session-label'),
     btnChangeSession: document.getElementById('btn-change-session'),
-
-    // Google Sign-In & Auth State
-    btnGoogleLogin: document.getElementById('btn-google-login'),
-    btnGoogleLogout: document.getElementById('btn-google-logout'),
-    authStateLoggedOut: document.getElementById('auth-state-logged-out'),
-    authStateLoggedIn: document.getElementById('auth-state-logged-in'),
-    userAvatarImg: document.getElementById('user-avatar-img'),
-    userAvatarInitial: document.getElementById('user-avatar-initial'),
-    userDisplayName: document.getElementById('user-display-name'),
-    userEmailText: document.getElementById('user-email-text'),
 
     // Header Sesi Belanja
     storeSelect: document.getElementById('store-select'),
@@ -1190,41 +1203,151 @@ function bindEventListeners() {
     render(false);
   });
 
-  // 16. Fitur Masuk & Keluar Akun Google (Gmail) untuk Sinkronisasi Multi-Device
-  if (dom.btnGoogleLogin) {
-    dom.btnGoogleLogin.addEventListener('click', handleGoogleLogin);
+  // 16. Event Handler Auth Screen (KeranjangPintar Login & Daftar Akun)
+  // Toggle Switch Tab Masuk / Daftar Akun
+  if (dom.tabBtnMasuk && dom.tabBtnDaftar) {
+    dom.tabBtnMasuk.addEventListener('click', () => {
+      dom.tabBtnMasuk.classList.add('active');
+      dom.tabBtnMasuk.setAttribute('aria-selected', 'true');
+      dom.tabBtnDaftar.classList.remove('active');
+      dom.tabBtnDaftar.setAttribute('aria-selected', 'false');
+      if (dom.formAuthLogin) dom.formAuthLogin.classList.remove('hidden');
+      if (dom.formAuthDaftar) dom.formAuthDaftar.classList.add('hidden');
+    });
+
+    dom.tabBtnDaftar.addEventListener('click', () => {
+      dom.tabBtnDaftar.classList.add('active');
+      dom.tabBtnDaftar.setAttribute('aria-selected', 'true');
+      dom.tabBtnMasuk.classList.remove('active');
+      dom.tabBtnMasuk.setAttribute('aria-selected', 'false');
+      if (dom.formAuthDaftar) dom.formAuthDaftar.classList.remove('hidden');
+      if (dom.formAuthLogin) dom.formAuthLogin.classList.add('hidden');
+    });
   }
 
-  if (dom.btnGoogleLogout) {
-    dom.btnGoogleLogout.addEventListener('click', handleGoogleLogout);
+  // Toggle Visibility Password
+  if (dom.btnToggleLoginPass && dom.loginPassword) {
+    dom.btnToggleLoginPass.addEventListener('click', () => {
+      const isPass = dom.loginPassword.getAttribute('type') === 'password';
+      dom.loginPassword.setAttribute('type', isPass ? 'text' : 'password');
+    });
+  }
+
+  if (dom.btnToggleRegPass && dom.regPassword) {
+    dom.btnToggleRegPass.addEventListener('click', () => {
+      const isPass = dom.regPassword.getAttribute('type') === 'password';
+      dom.regPassword.setAttribute('type', isPass ? 'text' : 'password');
+    });
+  }
+
+  // Submit Form Masuk (Login)
+  if (dom.formAuthLogin) {
+    dom.formAuthLogin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = dom.loginUsername?.value.trim() || '';
+      const password = dom.loginPassword?.value || '';
+
+      if (!username) {
+        showToast('⚠️ Harap masukkan username atau email kamu!', 'warning');
+        dom.loginUsername?.focus();
+        return;
+      }
+      if (!password) {
+        showToast('⚠️ Harap masukkan password akun kamu!', 'warning');
+        dom.loginPassword?.focus();
+        return;
+      }
+
+      const userObj = {
+        uid: 'user_' + username.replace(/[^a-zA-Z0-9]/g, '_'),
+        name: username.split('@')[0],
+        email: username.includes('@') ? username : `${username}@gmail.com`,
+        photoURL: ''
+      };
+
+      applyUserLogin(userObj);
+      showToast(`✅ Berhasil masuk! Selamat berbelanja, ${userObj.name}.`, 'success');
+    });
+  }
+
+  // Submit Form Daftar Akun (Sign Up)
+  if (dom.formAuthDaftar) {
+    dom.formAuthDaftar.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fullname = dom.regFullname?.value.trim() || '';
+      const username = dom.regUsername?.value.trim() || '';
+      const password = dom.regPassword?.value || '';
+
+      if (!fullname) {
+        showToast('⚠️ Harap masukkan nama lengkap kamu!', 'warning');
+        dom.regFullname?.focus();
+        return;
+      }
+      if (!username) {
+        showToast('⚠️ Harap masukkan username atau email!', 'warning');
+        dom.regUsername?.focus();
+        return;
+      }
+      if (!password || password.length < 4) {
+        showToast('⚠️ Password minimal 4 karakter!', 'warning');
+        dom.regPassword?.focus();
+        return;
+      }
+
+      const userObj = {
+        uid: 'user_' + username.replace(/[^a-zA-Z0-9]/g, '_'),
+        name: fullname,
+        email: username.includes('@') ? username : `${username}@gmail.com`,
+        photoURL: ''
+      };
+
+      applyUserLogin(userObj);
+      showToast(`🎉 Akun berhasil terdaftar! Selamat datang, ${fullname}.`, 'success');
+    });
+  }
+
+  // Tombol Lanjutkan dengan Google di Form Auth
+  if (dom.btnAuthGoogleLogin) {
+    dom.btnAuthGoogleLogin.addEventListener('click', handleGoogleLogin);
+  }
+  if (dom.btnAuthGoogleRegister) {
+    dom.btnAuthGoogleRegister.addEventListener('click', handleGoogleLogin);
+  }
+
+  // Tombol Lewati / Tamu (Mode Kasus Rian)
+  if (dom.btnAuthSkipGuest) {
+    dom.btnAuthSkipGuest.addEventListener('click', () => {
+      if (dom.authScreen) dom.authScreen.classList.add('hidden');
+      if (dom.mainAppContent) dom.mainAppContent.classList.remove('hidden');
+      showToast('Masuk dalam mode Tamu (Kasus Belanja Rian)', 'info');
+    });
+  }
+
+  // Tombol Keluar / Logout di Header Homepage
+  if (dom.btnHeaderLogout) {
+    dom.btnHeaderLogout.addEventListener('click', handleGoogleLogout);
   }
 }
 
 /**
  * Memperbarui tampilan komponen UI status login pengguna
+ * - Jika login: Sembunyikan Auth Screen, Tampilkan Homepage, Tampilkan User Badge di Header
+ * - Jika logout: Tampilkan Auth Screen, Sembunyikan Homepage
  */
 function updateAuthUI(userInfo) {
-  if (userInfo && userInfo.email) {
-    if (dom.authStateLoggedOut) dom.authStateLoggedOut.classList.add('hidden');
-    if (dom.authStateLoggedIn) dom.authStateLoggedIn.classList.remove('hidden');
+  if (userInfo && (userInfo.email || userInfo.name)) {
+    // Pengguna sudah login: Buka Homepage Utama
+    if (dom.authScreen) dom.authScreen.classList.add('hidden');
+    if (dom.mainAppContent) dom.mainAppContent.classList.remove('hidden');
 
-    if (dom.userDisplayName) dom.userDisplayName.textContent = userInfo.name || 'Pengguna';
-    if (dom.userEmailText) dom.userEmailText.textContent = userInfo.email;
-
-    if (userInfo.photo && dom.userAvatarImg) {
-      dom.userAvatarImg.src = userInfo.photo;
-      dom.userAvatarImg.classList.remove('hidden');
-      if (dom.userAvatarInitial) dom.userAvatarInitial.classList.add('hidden');
-    } else {
-      if (dom.userAvatarImg) dom.userAvatarImg.classList.add('hidden');
-      if (dom.userAvatarInitial) {
-        dom.userAvatarInitial.textContent = (userInfo.name || userInfo.email || 'U').charAt(0).toUpperCase();
-        dom.userAvatarInitial.classList.remove('hidden');
-      }
-    }
+    if (dom.headerUserBadge) dom.headerUserBadge.classList.remove('hidden');
+    if (dom.headerUserName) dom.headerUserName.textContent = userInfo.name || userInfo.email;
   } else {
-    if (dom.authStateLoggedOut) dom.authStateLoggedOut.classList.remove('hidden');
-    if (dom.authStateLoggedIn) dom.authStateLoggedIn.classList.add('hidden');
+    // Pengguna belum login: Tampilkan Layar Auth KeranjangPintar
+    if (dom.authScreen) dom.authScreen.classList.remove('hidden');
+    if (dom.mainAppContent) dom.mainAppContent.classList.add('hidden');
+
+    if (dom.headerUserBadge) dom.headerUserBadge.classList.add('hidden');
   }
 }
 
@@ -1239,7 +1362,7 @@ function applyUserLogin(user) {
   const photo = user.photoURL || '';
   const uid = user.uid || ('usr_' + email.replace(/[^a-zA-Z0-9]/g, '_'));
 
-  // Kode sesi konsisten di HP & PC yang terikat ke akun Google ini
+  // Kode sesi konsisten di HP & PC yang terikat ke akun ini
   const cleanSession = 'user_' + email.replace(/[^a-zA-Z0-9_-]/g, '_');
   
   const userInfo = { uid, name, email, photo, cleanSession };
@@ -1335,7 +1458,7 @@ async function handleGoogleLogout() {
     }
   );
 
-  showToast('Anda telah keluar dari akun. Sesi belanja kembali ke tamu.', 'info');
+  showToast('Anda telah keluar dari akun.', 'info');
 }
 
 /**
@@ -1377,6 +1500,9 @@ function init() {
   }
 
   if (!hasRestoredUser) {
+    // Tampilkan Layar Login KeranjangPintar sebelum masuk ke Homepage
+    updateAuthUI(null);
+
     if (dom.currentSessionLabel) {
       dom.currentSessionLabel.textContent = activeSessionId;
     }
