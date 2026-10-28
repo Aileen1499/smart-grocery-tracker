@@ -94,6 +94,7 @@ function initDomReferences() {
     btnToggleLoginPass: document.getElementById('btn-toggle-login-pass'),
     btnSubmitMasuk: document.getElementById('btn-submit-masuk'),
     btnAuthGoogleLogin: document.getElementById('btn-auth-google-login'),
+    linkForgotPass: document.getElementById('link-forgot-pass'),
     regFullname: document.getElementById('reg-fullname'),
     regUsername: document.getElementById('reg-username'),
     regPassword: document.getElementById('reg-password'),
@@ -1240,6 +1241,14 @@ function bindEventListeners() {
     });
   }
 
+  // Link Lupa Password
+  if (dom.linkForgotPass) {
+    dom.linkForgotPass.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('💡 Masukkan Gmail kamu atau gunakan "Lanjutkan dengan Google" untuk login langsung.', 'info');
+    });
+  }
+
   // Submit Form Masuk (Login)
   if (dom.formAuthLogin) {
     dom.formAuthLogin.addEventListener('submit', (e) => {
@@ -1248,7 +1257,7 @@ function bindEventListeners() {
       const password = dom.loginPassword?.value || '';
 
       if (!username) {
-        showToast('⚠️ Harap masukkan username atau email kamu!', 'warning');
+        showToast('⚠️ Harap masukkan Gmail, email, atau username kamu!', 'warning');
         dom.loginUsername?.focus();
         return;
       }
@@ -1258,10 +1267,11 @@ function bindEventListeners() {
         return;
       }
 
+      const cleanEmail = username.includes('@') ? username.toLowerCase() : `${username.toLowerCase()}@gmail.com`;
       const userObj = {
-        uid: 'user_' + username.replace(/[^a-zA-Z0-9]/g, '_'),
+        uid: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
         name: username.split('@')[0],
-        email: username.includes('@') ? username : `${username}@gmail.com`,
+        email: cleanEmail,
         photoURL: ''
       };
 
@@ -1279,12 +1289,12 @@ function bindEventListeners() {
       const password = dom.regPassword?.value || '';
 
       if (!fullname) {
-        showToast('⚠️ Harap masukkan nama lengkap kamu!', 'warning');
+        showToast('⚠️ Harap masukkan nama user / lengkap kamu!', 'warning');
         dom.regFullname?.focus();
         return;
       }
       if (!username) {
-        showToast('⚠️ Harap masukkan username atau email!', 'warning');
+        showToast('⚠️ Harap masukkan alamat Gmail / email kamu!', 'warning');
         dom.regUsername?.focus();
         return;
       }
@@ -1294,10 +1304,11 @@ function bindEventListeners() {
         return;
       }
 
+      const cleanEmail = username.includes('@') ? username.toLowerCase() : `${username.toLowerCase()}@gmail.com`;
       const userObj = {
-        uid: 'user_' + username.replace(/[^a-zA-Z0-9]/g, '_'),
+        uid: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
         name: fullname,
-        email: username.includes('@') ? username : `${username}@gmail.com`,
+        email: cleanEmail,
         photoURL: ''
       };
 

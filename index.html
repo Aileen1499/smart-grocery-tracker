@@ -25,26 +25,26 @@
   <div class="mobile-app-frame">
 
     <!-- ====================================================================
-         SCREEN 1: LOGIN & DAFTAR AKUN (KeranjangPintar Auth)
+         SCREEN 1: LOGIN & DAFTAR AKUN (GroceryTracker Auth)
          Muncul pertama kali saat aplikasi dibuka sebelum ke Homepage
+         Tema Hijau Konsisten dengan GroceryTracker
          ==================================================================== -->
     <section id="auth-screen" class="auth-screen" aria-label="Halaman Masuk dan Daftar Akun">
       <div class="auth-screen-inner">
 
-        <!-- Logo & Branding Atas (Sesuai Desain) -->
+        <!-- Logo & Branding Atas (GroceryTracker Hijau) -->
         <div class="auth-brand-header">
           <div class="auth-logo-badge">
-            <svg class="auth-cart-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-              <path d="M3 6h18"/>
-              <path d="M16 10a4 4 0 0 1-8 0"/>
+            <svg class="auth-cart-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
             </svg>
           </div>
-          <h1 class="auth-brand-title">KeranjangPintar</h1>
-          <p class="auth-brand-subtitle">Smart grocery &amp; budget companion</p>
+          <h1 class="auth-brand-title">GroceryTracker</h1>
+          <p class="auth-brand-subtitle">Asisten Belanja Cerdas &amp; Pengendali Anggaran Realtime</p>
         </div>
 
-        <!-- Kartu Auth Utama Berbingkai Membulat -->
+        <!-- Kartu Auth Utama Berbingkai Membulat Tema Hijau -->
         <div class="auth-card-frame">
           <!-- Segmented Tab Switch: Masuk / Daftar Akun -->
           <div class="auth-tab-nav" role="tablist">
@@ -55,7 +55,7 @@
           <!-- FORM MODE: MASUK (LOGIN) -->
           <form id="form-auth-login" class="auth-form-view" autocomplete="on">
             <div class="auth-field-group">
-              <label for="login-username" class="auth-field-label">USERNAME</label>
+              <label for="login-username" class="auth-field-label">GMAIL / EMAIL / USERNAME</label>
               <div class="auth-input-container">
                 <svg class="auth-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -105,25 +105,25 @@
             </button>
           </form>
 
-          <!-- FORM MODE: DAFTAR AKUN (SIGN UP) -->
+          <!-- FORM MODE: DAFTAR AKUN (SIGN UP) - Tersembunyi saat mode Masuk aktif -->
           <form id="form-auth-daftar" class="auth-form-view hidden" autocomplete="on">
             <div class="auth-field-group">
-              <label for="reg-fullname" class="auth-field-label">NAMA LENGKAP</label>
+              <label for="reg-fullname" class="auth-field-label">NAMA USER / LENGKAP</label>
               <div class="auth-input-container">
                 <svg class="auth-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
-                <input type="text" id="reg-fullname" class="auth-native-input" placeholder="Nama lengkap kamu" required autocomplete="name">
+                <input type="text" id="reg-fullname" class="auth-native-input" placeholder="Nama user atau panggilan kamu" required autocomplete="name">
               </div>
             </div>
 
             <div class="auth-field-group">
-              <label for="reg-username" class="auth-field-label">USERNAME / EMAIL</label>
+              <label for="reg-username" class="auth-field-label">ALAMAT GMAIL / EMAIL</label>
               <div class="auth-input-container">
                 <svg class="auth-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
-                <input type="text" id="reg-username" class="auth-native-input" placeholder="Username atau email kamu" required autocomplete="username">
+                <input type="text" id="reg-username" class="auth-native-input" placeholder="Email Gmail atau akun kamu" required autocomplete="username">
               </div>
             </div>
 
@@ -165,10 +165,10 @@
           </form>
         </div>
 
-        <!-- Yellow Footer Badge (Sesuai Gambar) -->
+        <!-- Green Security Footer Badge -->
         <div class="auth-security-badge-wrap">
           <div class="auth-security-badge">
-            <svg class="badge-shield-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="badge-shield-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               <path d="m9 12 2 2 4-4"/>
             </svg>
