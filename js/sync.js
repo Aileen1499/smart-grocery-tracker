@@ -22,6 +22,7 @@ let currentSessionId = DEFAULT_SESSION_ID;
 let isUpdatingFromCloud = false;
 let realtimeWs = null;
 let bridgeRetryTimeout = null;
+let pushDebounceTimer = null;
 
 /**
  * Normalisasi dan terapkan payload cloud ke aplikasi
@@ -446,31 +447,43 @@ export async function pushStateToFirestore(state, sessionId = currentSessionId) 
     updatedByDevice: isMobile ? 'Mobile/Smartphone' : 'Desktop/PC'
   };
 
-  // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
-  try {
-    if (typeof window !== 'undefined' && window.fetch) {
-      const bridgePayload = {
-        ...payload,
-        shoppingHistory: cleanShoppingHistory.slice(0, 5) // Maks 5 struk terbaru agar ukuran pesan pas
-      };
-      fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bridgePayload)
-      }).catch(() => {});
-    }
-  } catch (e) {}
-
-  if (!db || initError) return true;
-
-  try {
-    const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
-    await setDoc(docRef, payload, { merge: true });
-    return true;
-  } catch (err) {
-    console.warn('Gagal push ke Firestore (data tetap aman di LocalStorage):', err);
-    return false;
+  // Debounce network I/O sebesar 60ms agar UI terasa responsif 0ms tanpa lag saat input cepat
+  if (pushDebounceTimer) {
+    clearTimeout(pushDebounceTimer);
   }
+
+  return new Promise((resolve) => {
+    pushDebounceTimer = setTimeout(async () => {
+      // 1. Broadcast seketika ke Realtime Cloud Bridge (Port 443 WSS)
+      try {
+        if (typeof window !== 'undefined' && window.fetch) {
+          const bridgePayload = {
+            ...payload,
+            shoppingHistory: cleanShoppingHistory.slice(0, 5) // Maks 5 struk terbaru agar ukuran pesan pas
+          };
+          fetch(`https://ntfy.sh/sgt_session_${cleanSession}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bridgePayload)
+          }).catch(() => {});
+        }
+      } catch (e) {}
+
+      if (!db || initError) {
+        resolve(true);
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'shopping_sessions', sessionId || currentSessionId);
+        await setDoc(docRef, payload, { merge: true });
+        resolve(true);
+      } catch (err) {
+        console.warn('Gagal push ke Firestore (data tetap aman di LocalStorage):', err);
+        resolve(false);
+      }
+    }, 60);
+  });
 }
 
 /**

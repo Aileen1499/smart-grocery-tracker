@@ -338,9 +338,11 @@ function render(pushToCloud = true) {
     }
   }
 
-  // 6. Render Tab 2: Riwayat Toko & Fluktuasi Harga Realtime
-  renderHistoryCatalog();
-  renderShoppingHistory();
+  // 6. Render Tab 2: Riwayat Toko & Fluktuasi Harga Realtime (Hanya jika sedang aktif atau render awal untuk performa kilat)
+  if (activeTab === 'tab-riwayat' || !dom.historyCatalogContainer || !dom.historyCatalogContainer.children.length) {
+    renderHistoryCatalog();
+    renderShoppingHistory();
+  }
 
   // 7. Persistensi Lokal (Tahan F5 saat offline)
   saveState(state);
@@ -1113,6 +1115,11 @@ function switchTab(tabId) {
       btn.classList.remove('active');
     }
   });
+
+  if (tabId === 'tab-riwayat') {
+    renderHistoryCatalog();
+    renderShoppingHistory();
+  }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

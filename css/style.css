@@ -1048,14 +1048,16 @@ body {
   top: 10px;
   z-index: 85;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1.5px solid var(--primary-border);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   margin-bottom: 12px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  will-change: transform;
+  transform: translateZ(0);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 /* Status Kartu Belanja Aman (< 90%) */
@@ -1072,8 +1074,7 @@ body {
 .card-budget-warning {
   border: 2px solid #f59e0b !important;
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.28) !important;
-  animation: pulseCardWarn 2.2s infinite ease-in-out;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25) !important;
 }
 
 .card-budget-warning .qb-val {
@@ -1084,17 +1085,11 @@ body {
   color: #92400e !important;
 }
 
-@keyframes pulseCardWarn {
-  0%, 100% { border-color: #f59e0b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25); }
-  50% { border-color: #d97706; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45); }
-}
-
 /* Status Kartu Belanja Bahaya Over Budget (> 100%) - Kartu Merah Warning Tegas */
 .card-budget-danger {
   border: 2px solid #ef4444 !important;
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
-  box-shadow: 0 8px 26px rgba(239, 68, 68, 0.38) !important;
-  animation: pulseCardDanger 1.4s infinite ease-in-out;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35) !important;
 }
 
 .card-budget-danger .qb-val {
@@ -1103,11 +1098,6 @@ body {
 
 .card-budget-danger .qb-caption {
   color: #991b1b !important;
-}
-
-@keyframes pulseCardDanger {
-  0%, 100% { border-color: #ef4444; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); }
-  50% { border-color: #b91c1c; box-shadow: 0 8px 28px rgba(239, 68, 68, 0.6); }
 }
 
 .qb-row {
