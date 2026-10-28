@@ -259,3 +259,85 @@ export function showEditItemModal(item) {
     });
   });
 }
+
+/**
+ * Menampilkan modal dialog input cepat Gmail untuk pairing sinkronisasi realtime
+ * @param {string} defaultEmail
+ * @returns {Promise<string|null>} Email yang dimasukkan atau null jika batal
+ */
+export function showQuickGmailModal(defaultEmail = '') {
+  return new Promise((resolve) => {
+    const modalId = 'app-gmail-modal';
+    let existing = document.getElementById(modalId);
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = modalId;
+    overlay.className = 'modal-overlay open';
+    overlay.innerHTML = `
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3 class="modal-title">Masuk dengan Akun Gmail</h3>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom: 8px; font-size: 12.5px; color: var(--neutral-body);">
+            Masukkan alamat Gmail Anda agar HP dan Laptop otomatis tersambung ke ruang belanja yang sama secara realtime:
+          </p>
+          <input 
+            type="email" 
+            id="modal-gmail-input" 
+            class="native-input" 
+            style="width: 100%; padding: 10px; font-size: 14px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md);" 
+            placeholder="contoh: aileen@gmail.com" 
+            value="${defaultEmail}" 
+          />
+          <div style="font-size: 11px; color: #0369a1; background: #e0f2fe; padding: 8px 10px; border-radius: 6px; line-height: 1.4;">
+            💡 <strong>Info:</strong> Masukkan alamat Gmail yang sama di HP dan Laptop Anda. Keduanya akan langsung tersinkron detik itu juga!
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 14px;">
+          <button type="button" class="btn btn-secondary modal-gmail-cancel">Batal</button>
+          <button type="button" class="btn btn-primary modal-gmail-submit">Masuk &amp; Sinkron</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector('#modal-gmail-input');
+    const submitBtn = overlay.querySelector('.modal-gmail-submit');
+    const cancelBtn = overlay.querySelector('.modal-gmail-cancel');
+
+    setTimeout(() => input?.focus(), 100);
+
+    const cleanup = (val) => {
+      overlay.classList.add('closing');
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }, 150);
+    };
+
+    submitBtn.addEventListener('click', () => {
+      const email = input.value.trim();
+      if (!email || !email.includes('@')) {
+        input.style.borderColor = 'var(--danger)';
+        input.focus();
+        showToast('Masukkan alamat email yang valid!', 'warning');
+        return;
+      }
+      cleanup(email);
+    });
+
+    cancelBtn.addEventListener('click', () => cleanup(null));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) cleanup(null);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        submitBtn.click();
+      }
+    });
+  });
+}

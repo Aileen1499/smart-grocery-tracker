@@ -258,6 +258,131 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* User Auth Strip & Google Sign-In */
+.user-auth-strip {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.25);
+}
+
+.auth-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.btn-google-login {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 42px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.btn-google-login:active {
+  background-color: #f1f5f9;
+  transform: scale(0.98);
+}
+
+.auth-subtext {
+  font-size: 10px;
+  color: #ccfbf1;
+  text-align: center;
+}
+
+.auth-box-logged-in {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+}
+
+.user-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.user-avatar-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ffffff;
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-info-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 10.5px;
+  color: #ccfbf1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 32px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.btn-logout:hover, .btn-logout:active {
+  background-color: rgba(220, 38, 38, 0.85);
+  border-color: transparent;
+}
+
 .mode-badge {
   background: rgba(255, 255, 255, 0.15);
   color: #ccfbf1;

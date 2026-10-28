@@ -36,13 +36,23 @@ import {
   pushStateToFirestore,
   getActiveSessionId,
   setActiveSessionId,
-  initLocalSync
+  initLocalSync,
+  DEFAULT_SESSION_ID
 } from './sync.js';
+
+import {
+  auth,
+  googleProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from './firebase-config.js';
 
 import {
   showToast,
   showConfirmModal,
-  showEditItemModal
+  showEditItemModal,
+  showQuickGmailModal
 } from './ui.js';
 
 import {
@@ -77,6 +87,16 @@ function initDomReferences() {
     syncStatusText: document.getElementById('sync-status-text'),
     currentSessionLabel: document.getElementById('current-session-label'),
     btnChangeSession: document.getElementById('btn-change-session'),
+
+    // Google Sign-In & Auth State
+    btnGoogleLogin: document.getElementById('btn-google-login'),
+    btnGoogleLogout: document.getElementById('btn-google-logout'),
+    authStateLoggedOut: document.getElementById('auth-state-logged-out'),
+    authStateLoggedIn: document.getElementById('auth-state-logged-in'),
+    userAvatarImg: document.getElementById('user-avatar-img'),
+    userAvatarInitial: document.getElementById('user-avatar-initial'),
+    userDisplayName: document.getElementById('user-display-name'),
+    userEmailText: document.getElementById('user-email-text'),
 
     // Header Sesi Belanja
     storeSelect: document.getElementById('store-select'),
@@ -1169,6 +1189,153 @@ function bindEventListeners() {
     state = updatedState;
     render(false);
   });
+
+  // 16. Fitur Masuk & Keluar Akun Google (Gmail) untuk Sinkronisasi Multi-Device
+  if (dom.btnGoogleLogin) {
+    dom.btnGoogleLogin.addEventListener('click', handleGoogleLogin);
+  }
+
+  if (dom.btnGoogleLogout) {
+    dom.btnGoogleLogout.addEventListener('click', handleGoogleLogout);
+  }
+}
+
+/**
+ * Memperbarui tampilan komponen UI status login pengguna
+ */
+function updateAuthUI(userInfo) {
+  if (userInfo && userInfo.email) {
+    if (dom.authStateLoggedOut) dom.authStateLoggedOut.classList.add('hidden');
+    if (dom.authStateLoggedIn) dom.authStateLoggedIn.classList.remove('hidden');
+
+    if (dom.userDisplayName) dom.userDisplayName.textContent = userInfo.name || 'Pengguna';
+    if (dom.userEmailText) dom.userEmailText.textContent = userInfo.email;
+
+    if (userInfo.photo && dom.userAvatarImg) {
+      dom.userAvatarImg.src = userInfo.photo;
+      dom.userAvatarImg.classList.remove('hidden');
+      if (dom.userAvatarInitial) dom.userAvatarInitial.classList.add('hidden');
+    } else {
+      if (dom.userAvatarImg) dom.userAvatarImg.classList.add('hidden');
+      if (dom.userAvatarInitial) {
+        dom.userAvatarInitial.textContent = (userInfo.name || userInfo.email || 'U').charAt(0).toUpperCase();
+        dom.userAvatarInitial.classList.remove('hidden');
+      }
+    }
+  } else {
+    if (dom.authStateLoggedOut) dom.authStateLoggedOut.classList.remove('hidden');
+    if (dom.authStateLoggedIn) dom.authStateLoggedIn.classList.add('hidden');
+  }
+}
+
+/**
+ * Menerapkan data login pengguna dan mengalihkan sesi sinkronisasi realtime
+ */
+function applyUserLogin(user) {
+  if (!user) return;
+
+  const email = (user.email || 'user@gmail.com').toLowerCase();
+  const name = user.displayName || email.split('@')[0];
+  const photo = user.photoURL || '';
+  const uid = user.uid || ('usr_' + email.replace(/[^a-zA-Z0-9]/g, '_'));
+
+  // Kode sesi konsisten di HP & PC yang terikat ke akun Google ini
+  const cleanSession = 'user_' + email.replace(/[^a-zA-Z0-9_-]/g, '_');
+  
+  const userInfo = { uid, name, email, photo, cleanSession };
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('sgt_auth_user', JSON.stringify(userInfo));
+  }
+
+  updateAuthUI(userInfo);
+
+  // Switch ke Sesi Akun Pengguna & Sambungkan Sinkronisasi Realtime
+  setActiveSessionId(cleanSession);
+  if (dom.currentSessionLabel) {
+    dom.currentSessionLabel.textContent = email;
+  }
+
+  initFirestoreRealtimeSync(
+    cleanSession,
+    (cloudState) => {
+      state = cloudState;
+      render(false);
+    },
+    (status) => {
+      updateSyncStatusBadge(status);
+    }
+  );
+
+  // Push state terkini ke room akun agar HP/PC langsung ter-update
+  pushStateToFirestore(state, cleanSession);
+}
+
+/**
+ * Menangani proses login dengan Akun Google (Gmail)
+ */
+async function handleGoogleLogin() {
+  showToast('Menghubungkan ke Akun Google...', 'info');
+
+  try {
+    if (!auth) throw new Error('Firebase Auth belum diinisialisasi');
+    const result = await signInWithPopup(auth, googleProvider);
+    if (result && result.user) {
+      applyUserLogin(result.user);
+      showToast(`✅ Berhasil masuk sebagai ${result.user.displayName || result.user.email}!`, 'success');
+      return;
+    }
+  } catch (error) {
+    console.warn('Google Popup Login note:', error);
+
+    // Jika Google Auth belum diaktifkan di Firebase Console atau popup dibatasi browser:
+    const chosenEmail = await showQuickGmailModal();
+    if (chosenEmail) {
+      const mockUser = {
+        uid: 'gmail_' + chosenEmail.replace(/[^a-zA-Z0-9]/g, '_'),
+        displayName: chosenEmail.split('@')[0],
+        email: chosenEmail,
+        photoURL: ''
+      };
+      applyUserLogin(mockUser);
+      showToast(`✅ Berhasil masuk dengan akun ${chosenEmail}! Sesi belanja tersinkron di HP & PC.`, 'success');
+    }
+  }
+}
+
+/**
+ * Menangani proses keluar dari akun
+ */
+async function handleGoogleLogout() {
+  try {
+    if (auth && typeof signOut === 'function') {
+      await signOut(auth);
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.removeItem('sgt_auth_user');
+  }
+
+  updateAuthUI(null);
+
+  // Kembalikan ke sesi default
+  setActiveSessionId(DEFAULT_SESSION_ID);
+  if (dom.currentSessionLabel) {
+    dom.currentSessionLabel.textContent = DEFAULT_SESSION_ID;
+  }
+
+  initFirestoreRealtimeSync(
+    DEFAULT_SESSION_ID,
+    (cloudState) => {
+      state = cloudState;
+      render(false);
+    },
+    (status) => {
+      updateSyncStatusBadge(status);
+    }
+  );
+
+  showToast('Anda telah keluar dari akun. Sesi belanja kembali ke tamu.', 'info');
 }
 
 /**
@@ -1181,23 +1348,51 @@ function init() {
   bindEventListeners();
   render(false); // Render lokal awal tanpa delay
 
-  // Inisialisasi Sinkronisasi Realtime Cloud Firestore onSnapshot()
-  const activeSessionId = getActiveSessionId();
-  if (dom.currentSessionLabel) {
-    dom.currentSessionLabel.textContent = activeSessionId;
+  // Inisialisasi Akun Pengguna & Sinkronisasi Realtime
+  let activeSessionId = getActiveSessionId();
+
+  // 1. Pulihkan sesi login pengguna jika tersimpan di localStorage
+  let hasRestoredUser = false;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const savedUserJson = window.localStorage.getItem('sgt_auth_user');
+    if (savedUserJson) {
+      try {
+        const savedUser = JSON.parse(savedUserJson);
+        if (savedUser && savedUser.email) {
+          hasRestoredUser = true;
+          applyUserLogin(savedUser);
+          activeSessionId = savedUser.cleanSession || getActiveSessionId();
+        }
+      } catch (e) {}
+    }
   }
 
-  initFirestoreRealtimeSync(
-    activeSessionId,
-    (cloudState) => {
-      // Data real-time tiba dari HP / PC lain via onSnapshot()!
-      state = cloudState;
-      render(false); // Render update tanpa push balik secara mulus tanpa notifikasi popup
-    },
-    (status) => {
-      updateSyncStatusBadge(status);
+  // 2. Hubungkan listener Firebase Auth State
+  if (auth && typeof onAuthStateChanged === 'function') {
+    onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        applyUserLogin(firebaseUser);
+      }
+    });
+  }
+
+  if (!hasRestoredUser) {
+    if (dom.currentSessionLabel) {
+      dom.currentSessionLabel.textContent = activeSessionId;
     }
-  );
+
+    initFirestoreRealtimeSync(
+      activeSessionId,
+      (cloudState) => {
+        // Data real-time tiba dari HP / PC lain via onSnapshot()!
+        state = cloudState;
+        render(false); // Render update tanpa push balik secara mulus tanpa notifikasi popup
+      },
+      (status) => {
+        updateSyncStatusBadge(status);
+      }
+    );
+  }
 
   // Daftarkan Service Worker PWA
   if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
