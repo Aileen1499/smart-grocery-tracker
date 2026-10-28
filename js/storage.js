@@ -3,7 +3,7 @@
  * Memastikan data keranjang belanja, toko, tanggal, dan limit dompet tahan reload browser (F5)
  */
 
-import { DEFAULT_STORE, DEFAULT_DATE, DEFAULT_BUDGET } from './history-data.js';
+import { DEFAULT_STORE, DEFAULT_DATE, DEFAULT_BUDGET, DEFAULT_SHOPPING_HISTORY } from './history-data.js';
 
 export const STORAGE_KEY = 'smart_grocery_session_v1';
 export const SYNC_CHANNEL_NAME = 'smart_grocery_realtime_sync';
@@ -17,7 +17,7 @@ export function getDefaultState() {
     shoppingDate: DEFAULT_DATE,
     budgetLimit: DEFAULT_BUDGET,
     items: [],
-    shoppingHistory: [],
+    shoppingHistory: [...DEFAULT_SHOPPING_HISTORY],
     customHistory: {},
     lastUpdated: Date.now()
   };
@@ -37,12 +37,16 @@ export function loadState() {
       return getDefaultState();
     }
     const parsed = JSON.parse(raw);
+    const loadedHistory = (Array.isArray(parsed.shoppingHistory) && parsed.shoppingHistory.length > 0)
+      ? parsed.shoppingHistory
+      : [...DEFAULT_SHOPPING_HISTORY];
+
     return {
       storeName: parsed.storeName || DEFAULT_STORE,
       shoppingDate: parsed.shoppingDate || DEFAULT_DATE,
       budgetLimit: typeof parsed.budgetLimit === 'number' ? parsed.budgetLimit : DEFAULT_BUDGET,
       items: Array.isArray(parsed.items) ? parsed.items : [],
-      shoppingHistory: Array.isArray(parsed.shoppingHistory) ? parsed.shoppingHistory : [],
+      shoppingHistory: loadedHistory,
       customHistory: parsed.customHistory || {},
       lastUpdated: parsed.lastUpdated || Date.now()
     };

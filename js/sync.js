@@ -69,6 +69,45 @@ function applyCloudPayload(payload, onCloudDataCallback) {
 }
 
 /**
+ * Mengambil status belanja terbaru dari Cloud Bridge secara instan saat inisialisasi / tab aktif
+ */
+async function pullLatestCloudBridge(topic, onCloudDataCallback) {
+  if (typeof window === 'undefined' || !window.fetch) return;
+  try {
+    const res = await fetch(`https://ntfy.sh/${topic}/json?poll=1`);
+    if (!res.ok) return;
+    const text = await res.text();
+    if (!text || !text.trim()) return;
+
+    const lines = text.trim().split('\n');
+    let newestPayload = null;
+    let newestTime = 0;
+
+    for (const line of lines) {
+      try {
+        const item = JSON.parse(line);
+        if (item.event === 'message' && item.message) {
+          const payload = JSON.parse(item.message);
+          if (payload && payload.senderId !== myClientId) {
+            const t = Number(payload.lastUpdated) || (Number(item.time) * 1000) || 0;
+            if (t > newestTime) {
+              newestTime = t;
+              newestPayload = payload;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (newestPayload && !isUpdatingFromCloud) {
+      applyCloudPayload(newestPayload, onCloudDataCallback);
+    }
+  } catch (err) {
+    console.warn('Pull cloud note:', err);
+  }
+}
+
+/**
  * Membuka koneksi WebSocket ke Cloud Bridge
  */
 function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback) {
@@ -85,9 +124,11 @@ function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCall
       bridgeRetryTimeout = null;
     }
 
-    realtimeWs = new WebSocket(`wss://ntfy.sh/${topic}/ws`);
+    // Sambungkan jalur WebSocket dengan parameter ?since=1h agar data terbaru dari HP/PC langsung diterima
+    realtimeWs = new WebSocket(`wss://ntfy.sh/${topic}/ws?since=1h`);
 
     realtimeWs.onopen = () => {
+      pullLatestCloudBridge(topic, onCloudDataCallback);
       if (typeof onStatusChangeCallback === 'function') {
         onStatusChangeCallback({
           connected: true,
@@ -114,7 +155,7 @@ function connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCall
     realtimeWs.onclose = () => {
       bridgeRetryTimeout = setTimeout(() => {
         connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
-      }, 2500);
+      }, 2000);
     };
 
     realtimeWs.onerror = () => {
@@ -135,8 +176,26 @@ function initRealtimeCloudBridge(sessionId, onCloudDataCallback, onStatusChangeC
   const cleanSession = (sessionId || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
   const topic = `sgt_session_${cleanSession}`;
 
+  // Ambil state terbaru seketika dari cloud bridge
+  pullLatestCloudBridge(topic, onCloudDataCallback);
+
   // Hubungkan jalur WebSocket Realtime WSS Port 443
   connectRealtimeWebSocket(topic, onCloudDataCallback, onStatusChangeCallback);
+
+  // Polling penyegaran otomatis saat pengguna kembali ke tab browser / membuka kunci layar HP
+  if (typeof window !== 'undefined' && !window.__sgt_visibility_bound) {
+    window.__sgt_visibility_bound = true;
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const currentClean = (getActiveSessionId() || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+        pullLatestCloudBridge(`sgt_session_${currentClean}`, onCloudDataCallback);
+      }
+    });
+    window.addEventListener('focus', () => {
+      const currentClean = (getActiveSessionId() || DEFAULT_SESSION_ID).replace(/[^a-zA-Z0-9_-]/g, '_');
+      pullLatestCloudBridge(`sgt_session_${currentClean}`, onCloudDataCallback);
+    });
+  }
 }
 
 /**

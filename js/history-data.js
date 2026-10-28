@@ -389,3 +389,103 @@ export const UNIT_OPTIONS = [
   'dus'
 ];
 
+/**
+ * Baseline data histori struk belanja awal (SSOT Riwayat Belanja Kasus Rian)
+ */
+export const DEFAULT_SHOPPING_HISTORY = [
+  {
+    id: 'receipt_lotte_sept_2026',
+    storeName: 'Lotte Mart Grocery - Puri Indah',
+    shoppingDate: '2026-09-26',
+    timestamp: 1790400000000,
+    totalSpent: 213000,
+    budgetLimit: 350000,
+    isOverBudget: false,
+    itemCount: 5,
+    items: [
+      {
+        name: 'Beras 5kg',
+        category: 'Bahan Pokok',
+        unit: 'karung/5kg',
+        quantity: 1,
+        originalPrice: 68000,
+        finalUnitPrice: 68000,
+        discountInput: '',
+        subtotal: 68000
+      },
+      {
+        name: 'Minyak Goreng 2L',
+        category: 'Bahan Pokok',
+        unit: 'liter',
+        quantity: 1,
+        originalPrice: 43000,
+        finalUnitPrice: 43000,
+        discountInput: '',
+        subtotal: 43000
+      },
+      {
+        name: 'Telur 1kg',
+        category: 'Bahan Pokok',
+        unit: 'kg',
+        quantity: 1,
+        originalPrice: 32000,
+        finalUnitPrice: 32000,
+        discountInput: '',
+        subtotal: 32000
+      },
+      {
+        name: 'Sabun Cuci',
+        category: 'Kebutuhan Rumah Tangga',
+        unit: 'pcs',
+        quantity: 2,
+        originalPrice: 20000,
+        finalUnitPrice: 15000,
+        discountInput: '25%',
+        subtotal: 30000
+      },
+      {
+        name: 'Wajan',
+        category: 'Kebutuhan Rumah Tangga',
+        unit: 'pcs',
+        quantity: 1,
+        originalPrice: 100000,
+        finalUnitPrice: 40000,
+        discountInput: '50% + 20%',
+        subtotal: 40000
+      }
+    ]
+  },
+  {
+    id: 'receipt_superindo_sept_2026',
+    storeName: 'Superindo - Daan Mogot',
+    shoppingDate: '2026-09-15',
+    timestamp: 1789400000000,
+    totalSpent: 41500,
+    budgetLimit: 100000,
+    isOverBudget: false,
+    itemCount: 2,
+    items: [
+      {
+        name: 'Garam 500g',
+        category: 'Bumbu Dapur',
+        unit: 'bungkus',
+        quantity: 1,
+        originalPrice: 5000,
+        finalUnitPrice: 5000,
+        discountInput: '',
+        subtotal: 5000
+      },
+      {
+        name: 'Gula Pasir 1kg',
+        category: 'Bahan Pokok',
+        unit: 'kg',
+        quantity: 2,
+        originalPrice: 18250,
+        finalUnitPrice: 18250,
+        discountInput: '',
+        subtotal: 36500
+      }
+    ]
+  }
+];
+

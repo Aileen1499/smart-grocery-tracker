@@ -1041,15 +1041,73 @@ body {
 }
 
 /* ==========================================================================
-   Quick Budget Meter (Tab Belanja)
+   Quick Budget Meter (Tab Belanja) - Melayang & Responsif Status Anggaran
    ========================================================================== */
 .quick-budget-strip {
-  background: linear-gradient(135deg, #ffffff 0%, var(--primary-soft) 100%);
-  border: 1px solid var(--primary-border);
+  position: sticky;
+  top: 10px;
+  z-index: 85;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid var(--primary-border);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 10px 14px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Status Kartu Belanja Aman (< 90%) */
+.card-budget-safe {
+  border-color: var(--primary-border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 253, 250, 0.96) 100%);
+}
+
+.card-budget-safe .qb-val {
+  color: #0f766e;
+}
+
+/* Status Kartu Belanja Waspada (>= 90% s.d 100%) - Kartu Kuning */
+.card-budget-warning {
+  border: 2px solid #f59e0b !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.28) !important;
+  animation: pulseCardWarn 2.2s infinite ease-in-out;
+}
+
+.card-budget-warning .qb-val {
+  color: #b45309 !important;
+}
+
+.card-budget-warning .qb-caption {
+  color: #92400e !important;
+}
+
+@keyframes pulseCardWarn {
+  0%, 100% { border-color: #f59e0b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25); }
+  50% { border-color: #d97706; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45); }
+}
+
+/* Status Kartu Belanja Bahaya Over Budget (> 100%) - Kartu Merah Warning Tegas */
+.card-budget-danger {
+  border: 2px solid #ef4444 !important;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+  box-shadow: 0 8px 26px rgba(239, 68, 68, 0.38) !important;
+  animation: pulseCardDanger 1.4s infinite ease-in-out;
+}
+
+.card-budget-danger .qb-val {
+  color: #b91c1c !important;
+}
+
+.card-budget-danger .qb-caption {
+  color: #991b1b !important;
+}
+
+@keyframes pulseCardDanger {
+  0%, 100% { border-color: #ef4444; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); }
+  50% { border-color: #b91c1c; box-shadow: 0 8px 28px rgba(239, 68, 68, 0.6); }
 }
 
 .qb-row {

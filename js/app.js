@@ -132,10 +132,13 @@ function initDomReferences() {
     itemPriceHelper: document.getElementById('item-price-helper'),
     itemDiscountInput: document.getElementById('item-discount'),
     formPreviewBox: document.getElementById('form-preview-box'),
+    btnAddItem: document.getElementById('btn-add-item'),
     fabAddItem: document.getElementById('fab-add-item'),
     itemNameError: document.getElementById('item-name-error'),
     itemPriceError: document.getElementById('item-price-error'),
     itemQtyError: document.getElementById('item-qty-error'),
+    quickBudgetMeter: document.getElementById('quick-budget-meter'),
+    cartCardContainer: document.getElementById('cart-card-container'),
 
     // Keranjang Belanja
     cartCountBadge: document.getElementById('cart-count-badge'),
@@ -271,6 +274,24 @@ function render(pushToCloud = true) {
     dom.budgetProgressFill.style.width = `${budgetEvaluation.progressWidth}%`;
     dom.budgetProgressFill.className = `progress-fill ${budgetEvaluation.barClass}`;
   }
+
+  // Update indikator warna kartu belanja (Kuning waspada mendekati limit >=90%, Merah tanda bahaya over budget >100%)
+  const budgetCardsToUpdate = [
+    dom.quickBudgetMeter || document.getElementById('quick-budget-meter'),
+    dom.cartCardContainer || document.getElementById('cart-card-container')
+  ];
+  budgetCardsToUpdate.forEach(card => {
+    if (card) {
+      card.classList.remove('card-budget-safe', 'card-budget-warning', 'card-budget-danger');
+      if (budgetEvaluation.isDanger) {
+        card.classList.add('card-budget-danger');
+      } else if (budgetEvaluation.isWarning) {
+        card.classList.add('card-budget-warning');
+      } else {
+        card.classList.add('card-budget-safe');
+      }
+    }
+  });
 
   // 4. Render Tab 3: Anggaran (Full Dashboard)
   if (dom.tabBudgetBadge) {
@@ -1100,19 +1121,20 @@ function switchTab(tabId) {
  * Menghubungkan seluruh event listener antarmuka pengguna
  */
 function bindEventListeners() {
-  // 1. Form submit tambah item (SRS F-01)
+  // 1. Form submit & Klik Tombol Masukkan ke Keranjang (SRS F-01)
   if (dom.itemForm) {
-    dom.itemForm.addEventListener('submit', handleAddItem);
+    dom.itemForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleAddItem(e);
+    });
   }
 
-  // Safeguard tambahan untuk tombol Masukkan ke Keranjang saat diklik di Laptop/Desktop
-  const btnAddItemDirect = document.getElementById('btn-add-item');
+  // Tombol Masukkan ke Keranjang di Form
+  const btnAddItemDirect = dom.btnAddItem || document.getElementById('btn-add-item');
   if (btnAddItemDirect) {
     btnAddItemDirect.addEventListener('click', (e) => {
-      // Jika event belum dicegah atau form submit belum jalan, jalankan handleAddItem
-      if (!isSubmittingItem) {
-        handleAddItem(e);
-      }
+      e.preventDefault();
+      handleAddItem(e);
     });
   }
 
@@ -1244,6 +1266,7 @@ function bindEventListeners() {
           unit: String(item.unit || 'pcs'),
           quantity: Number(item.quantity) || 1,
           originalPrice: Number(item.originalPrice) || 0,
+          discountInput: String(item.discountInput || ''),
           finalUnitPrice: Number(item.finalUnitPrice) || Number(item.originalPrice) || 0,
           subtotal: Number(item.subtotal) || 0
         }))
@@ -1390,19 +1413,21 @@ function bindEventListeners() {
         const receipt = (state.shoppingHistory || []).find(r => r.id === receiptId);
         if (receipt && Array.isArray(receipt.items) && receipt.items.length > 0) {
           state.storeName = receipt.storeName || state.storeName;
-          state.items = receipt.items.map(i => ({
-            id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          state.items = receipt.items.map((i, idx) => ({
+            id: 'item_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substr(2, 5),
             name: i.name,
             category: i.category || 'Bahan Pokok',
             unit: i.unit || 'pcs',
-            quantity: i.quantity || 1,
-            originalPrice: i.originalPrice || i.finalUnitPrice || 0,
-            discountInput: ''
+            quantity: Number(i.quantity) || 1,
+            originalPrice: Number(i.originalPrice) || Number(i.finalUnitPrice) || 0,
+            discountInput: i.discountInput || ''
           }));
           state.lastUpdated = Date.now();
           render(true);
           switchTab('tab-belanja');
-          showToast(`🛒 Berhasil memuat ${receipt.items.length} barang dari struk ${receipt.storeName}!`, 'success');
+          showToast(`🛒 Berhasil memuat ${receipt.items.length} barang dari struk ${receipt.storeName} ke troli!`, 'success');
+        } else {
+          showToast('⚠️ Data barang pada struk tidak ditemukan.', 'warning');
         }
         return;
       }
@@ -1432,17 +1457,26 @@ function bindEventListeners() {
 
   // 12. Floating Action Button (FAB) Tambah Barang Mobile
   if (dom.fabAddItem) {
-    dom.fabAddItem.addEventListener('click', () => {
+    dom.fabAddItem.addEventListener('click', (e) => {
       switchTab('tab-belanja');
-      const formCard = dom.itemForm ? dom.itemForm.closest('.native-card') : null;
-      if (formCard) {
-        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        formCard.classList.remove('form-highlight-pulse');
-        void formCard.offsetWidth;
-        formCard.classList.add('form-highlight-pulse');
-      }
-      if (dom.itemNameInput) {
-        setTimeout(() => dom.itemNameInput.focus(), 300);
+      const nameVal = dom.itemNameInput?.value.trim() || '';
+      const priceVal = dom.itemPriceInput?.value.trim() || '';
+
+      // Jika form sudah diisi (ada nama atau harga), langsung eksekusi penambahan ke troli!
+      if (nameVal || priceVal) {
+        handleAddItem(e);
+      } else {
+        const formCard = dom.itemForm ? dom.itemForm.closest('.native-card') : null;
+        if (formCard) {
+          formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          formCard.classList.remove('form-highlight-pulse');
+          void formCard.offsetWidth;
+          formCard.classList.add('form-highlight-pulse');
+        }
+        if (dom.itemNameInput) {
+          setTimeout(() => dom.itemNameInput.focus(), 250);
+        }
+        showToast('📝 Form input siap! Ketik nama dan harga barang belanjaan kamu.', 'info');
       }
     });
   }
