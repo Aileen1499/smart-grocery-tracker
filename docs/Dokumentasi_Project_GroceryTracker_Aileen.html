@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dokumentasi Project • GroceryTracker (Smart Grocery & Budget Safety Tracker)</title>
+  <title>Dokumentasi Project • GroceryTracker - Aileen Pheeby Angelica</title>
   <style>
     @page {
       size: A4;
-      margin: 0.75in;
+      margin: 0.5in 0.65in;
     }
     * {
       box-sizing: border-box;
@@ -16,175 +16,165 @@
     }
     body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 12pt;
-      line-height: 1.5;
-      color: #111827;
+      font-size: 11pt;
+      line-height: 1.42;
+      color: #000000;
       background: #ffffff;
-      padding: 0.75in;
-      max-width: 850px;
+      padding: 0.5in;
+      max-width: 820px;
       margin: 0 auto;
     }
-    .text-center { text-align: center; }
-    .text-justify { text-align: justify; }
+    @media print {
+      body {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+    }
 
-    /* Cover / Header Dokumen */
+    /* Header Dokumen Formal Akademik (Monochrome Hitam Putih) */
     .doc-header {
       text-align: center;
-      margin-bottom: 28px;
-      border-bottom: 2px solid #0f766e;
-      padding-bottom: 20px;
+      margin-bottom: 8pt;
+      border-bottom: 1.5pt solid #000000;
+      padding-bottom: 4pt;
     }
-    .school-title {
-      font-size: 13pt;
+    .header-institution {
+      font-size: 11pt;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #0f766e;
-      margin-bottom: 4px;
+      margin-bottom: 1pt;
     }
-    .doc-main-title {
-      font-size: 16pt;
+    .header-course {
+      font-size: 9.5pt;
+      margin-bottom: 3pt;
+    }
+    .header-title {
+      font-size: 13pt;
       font-weight: bold;
       text-transform: uppercase;
-      margin-top: 8px;
-      margin-bottom: 4px;
-      color: #111827;
+      margin-bottom: 1pt;
     }
-    .doc-subtitle {
-      font-size: 12pt;
+    .header-subtitle {
+      font-size: 10.5pt;
       font-style: italic;
-      color: #4b5563;
-      margin-bottom: 14px;
     }
 
-    /* Headings Sesuai Ketentuan Rubrik PT */
+    /* Tipografi & Hirarki Heading */
     h1 {
-      font-size: 14pt;
+      font-size: 13pt;
       font-weight: bold;
-      margin-top: 24px;
-      margin-bottom: 10px;
-      color: #0f766e;
-      border-bottom: 1px solid #cbd5e1;
-      padding-bottom: 4px;
       text-transform: uppercase;
+      margin-top: 8pt;
+      margin-bottom: 4pt;
+      border-bottom: 1pt solid #000000;
+      padding-bottom: 2pt;
+      color: #000000;
     }
     h2 {
-      font-size: 12.5pt;
+      font-size: 11.5pt;
       font-weight: bold;
-      margin-top: 18px;
-      margin-bottom: 8px;
-      color: #115e59;
+      margin-top: 6pt;
+      margin-bottom: 3pt;
+      color: #000000;
     }
-    h3 {
-      font-size: 12pt;
-      font-weight: bold;
-      margin-top: 14px;
-      margin-bottom: 6px;
-      color: #1f2937;
-    }
+
     p {
-      font-size: 12pt;
-      line-height: 1.5;
-      margin-bottom: 12px;
+      font-size: 11pt;
+      line-height: 1.4;
+      margin-bottom: 6pt;
       text-align: justify;
+      text-justify: inter-word;
     }
+
     ul, ol {
-      margin-left: 28px;
-      margin-bottom: 12px;
+      margin-left: 20pt;
+      margin-bottom: 5pt;
     }
     li {
-      font-size: 12pt;
-      line-height: 1.5;
-      margin-bottom: 6px;
+      font-size: 10.5pt;
+      line-height: 1.35;
+      margin-bottom: 2pt;
       text-align: justify;
     }
 
-    /* Tabel Standar Akademik */
+    /* Tabel Standar Akademik (Hitam Putih) */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 14px 0;
-      font-size: 11pt;
+      margin: 5pt 0 8pt 0;
+      font-size: 10pt;
     }
     th, td {
-      border: 1px solid #94a3b8;
-      padding: 8px 10px;
-      vertical-align: top;
-      line-height: 1.4;
+      border: 1pt solid #000000;
+      padding: 3.5pt 6pt;
+      vertical-align: middle;
+      line-height: 1.25;
     }
     th {
-      background-color: #f1f5f9;
+      background-color: #f2f2f2;
       font-weight: bold;
       text-align: left;
-      color: #0f766e;
     }
 
-    /* Box Info & Tips */
-    .callout-box {
-      border-left: 4px solid #0f766e;
-      background-color: #f0fdfa;
-      padding: 10px 14px;
-      margin: 14px 0;
-      font-size: 11.5pt;
-    }
-    .callout-box strong {
-      color: #0f766e;
-    }
-
-    /* Gambar Screenshot */
-    .screenshot-container {
-      text-align: center;
-      margin: 16px 0 20px 0;
+    /* Layout Kompak Fitur 2 Kolom (Gambar & Penjelasan) */
+    .feature-layout {
+      display: flex;
+      gap: 12pt;
+      align-items: center;
+      margin-bottom: 6pt;
       page-break-inside: avoid;
     }
-    .screenshot-img {
-      max-width: 340px;
-      width: 100%;
-      height: auto;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: inline-block;
-    }
-    .caption {
-      font-size: 10.5pt;
-      font-style: italic;
-      color: #4b5563;
-      margin-top: 6px;
+    .feature-media {
+      flex: 0 0 95pt;
       text-align: center;
     }
-
-    /* QR Code Box */
-    .qr-container {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin: 14px 0;
-    }
-    .qr-img {
-      width: 110px;
-      height: 110px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-    .qr-info {
-      font-size: 11pt;
-      line-height: 1.45;
-    }
-
-    .badge-tag {
+    .feature-media img {
+      max-height: 145pt;
+      width: auto;
+      max-width: 95pt;
+      border: 1pt solid #000000;
       display: inline-block;
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 2px 8px;
-      border-radius: 4px;
+      margin-bottom: 2pt;
+    }
+    .feature-desc {
+      flex: 1;
+    }
+    .feature-desc p {
       font-size: 10.5pt;
+      line-height: 1.35;
+      margin-bottom: 3pt;
+    }
+    .feature-desc ol, .feature-desc ul {
+      margin-left: 14pt;
+      margin-bottom: 2pt;
+    }
+    .feature-desc li {
+      font-size: 10pt;
+      line-height: 1.3;
+      margin-bottom: 1.5pt;
+      text-align: justify;
+    }
+
+    .caption {
+      font-size: 8pt;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .video-box {
+      border: 1pt solid #000000;
+      padding: 6pt 8pt;
+      margin-top: 6pt;
+      background: #fafafa;
+      page-break-inside: avoid;
+    }
+    .video-box-header {
       font-weight: bold;
+      font-size: 11pt;
+      margin-bottom: 2pt;
+      text-transform: uppercase;
     }
 
     .page-break {
@@ -195,402 +185,288 @@
 <body>
 
   <!-- ====================================================================
-       HEADER & IDENTITAS EVALUASI PRAKTIK (PT)
+       HALAMAN 1: IDENTITAS PROJECT & TENTANG APLIKASI
        ==================================================================== -->
   <div class="doc-header">
-    <div class="school-title">SMA Mutiara Bangsa 2 Tangerang &bull; ICT Codehub Kelas 12</div>
-    <div style="font-size: 11pt; color: #64748b; margin-bottom: 6px;">Evaluasi Practical Test (PT) Pertemuan 18 ~ 19 &bull; Semester Ganjil TA 2026/2027</div>
-    <div class="doc-main-title">DOKUMENTASI PROJECT • GROCERYTRACKER</div>
-    <div class="doc-subtitle">User Manual, Spesifikasi Fitur, dan Panduan Operasional Aplikasi Web Smart Grocery &amp; Budget Safety Tracker PWA</div>
+    <div class="header-institution">SMA MUTIARA BANGSA 2 TANGERANG</div>
+    <div class="header-course">Kurikulum Informatika Kelas 12 &bull; Evaluasi Practical Test (PT) Pertemuan 18 ~ 19</div>
+    <div class="header-title">DOKUMENTASI PROJECT &bull; GROCERYTRACKER</div>
+    <div class="header-subtitle">User Manual dan Panduan Operasional Aplikasi Web Smart Grocery &amp; Budget Safety Tracker PWA</div>
   </div>
 
-  <!-- ====================================================================
-       BAGIAN 1: IDENTITAS PROJECT & PEMBUAT
-       ==================================================================== -->
   <h1>Bagian 1 • Identitas Project &amp; Pembuat</h1>
   <p>
-    Dokumentasi ini disusun sebagai deliverable resmi ujian Practical Test (PT) mata pelajaran Informatika / ICT Codehub. Aplikasi <strong>GroceryTracker</strong> merupakan aplikasi web mandiri berbasis Progressive Web App (PWA) yang dirancang khusus untuk membantu mengendalikan pengeluaran belanja kebutuhan pokok secara real-time.
+    Naskah ini disusun untuk memenuhi ujian Practical Test (PT) perancangan dan dokumentasi produk perangkat lunak mandiri. Seluruh data identitas pembuat dan akses sistem tercantum pada tabel berikut:
   </p>
 
   <table>
     <tr>
-      <th style="width: 32%;">Item Identitas</th>
-      <th style="width: 68%;">Keterangan Lengkap</th>
+      <th style="width: 27%;">Komponen Identitas</th>
+      <th style="width: 53%;">Keterangan Data</th>
+      <th style="width: 20%; text-align: center;">Ikon / QR Code</th>
     </tr>
     <tr>
-      <td><strong>Nama Aplikasi</strong></td>
-      <td><strong>GroceryTracker</strong> (Smart Grocery &amp; Budget Safety Tracker)</td>
+      <td><strong>Judul Dokumen</strong></td>
+      <td>Dokumentasi Project &bull; GroceryTracker (Smart Grocery &amp; Budget Safety Tracker)</td>
+      <td rowspan="4" style="text-align: center; vertical-align: middle;">
+        <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/icons/icon-192.png" alt="Logo GroceryTracker" style="width: 52pt; height: 52pt; border: 1pt solid #000000; display: inline-block;"><br>
+        <span style="font-size: 8pt; font-style: italic;">Logo GroceryTracker</span>
+      </td>
     </tr>
     <tr>
-      <td><strong>Nama Siswa / Pengembang</strong></td>
-      <td><strong>Aileen</strong></td>
+      <td><strong>Nama Lengkap Siswa</strong></td>
+      <td><strong>Aileen Pheeby Angelica</strong></td>
     </tr>
     <tr>
-      <td><strong>Kelas &amp; Program</strong></td>
-      <td><strong>Kelas 12 MIPA</strong> &bull; SMA Mutiara Bangsa 2 Tangerang</td>
+      <td><strong>Nomor Absen / Kelas</strong></td>
+      <td><strong>Nomor Absen: 1 &bull; Kelas: 12C</strong></td>
     </tr>
     <tr>
-      <td><strong>Email Sekolah (Google Account)</strong></td>
-      <td><a href="mailto:aileen@mutiarabangsa.sch.id">aileen@mutiarabangsa.sch.id</a></td>
+      <td><strong>Sekolah / Email</strong></td>
+      <td>SMA Mutiara Bangsa 2 Tangerang &bull; <code>aileen@mutiarabangsa.sch.id</code></td>
     </tr>
     <tr>
-      <td><strong>Link Live Website (Vercel)</strong></td>
+      <td><strong>Link Live Website</strong></td>
       <td><a href="https://smart-grocery-tracker-ochre.vercel.app/" target="_blank">https://smart-grocery-tracker-ochre.vercel.app/</a></td>
+      <td rowspan="3" style="text-align: center; vertical-align: middle;">
+        <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/qrcode_live_app.png" alt="QR Code Live Web" style="width: 52pt; height: 52pt; border: 1pt solid #000000; display: inline-block;"><br>
+        <span style="font-size: 8pt; font-style: italic;">Scan Live Demo</span>
+      </td>
     </tr>
     <tr>
       <td><strong>Link GitHub Repository</strong></td>
       <td><a href="https://github.com/Aileen1499/smart-grocery-tracker.git" target="_blank">https://github.com/Aileen1499/smart-grocery-tracker.git</a></td>
     </tr>
     <tr>
-      <td><strong>Teknologi Utama</strong></td>
-      <td>HTML5 Semantic, CSS3 Modern Glassmorphic, Vanilla JavaScript (ES6+ Modules), Firebase Authentication &amp; Firestore Realtime DB, Cloud WebSocket Bridge (WSS Port 443), Service Worker PWA Cache v18.</td>
+      <td><strong>Spesifikasi Teknologi</strong></td>
+      <td>HTML5 Semantic, CSS3 Modern, Vanilla JavaScript (ES6+), Firebase Firestore, WebSocket Bridge WSS, PWA Cache v18.</td>
     </tr>
   </table>
 
-  <!-- Nilai Tambah: QR Code Akses Cepat Langsung ke Smartphone Penguji -->
-  <div class="qr-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/qrcode_live_app.png" alt="QR Code Live Website GroceryTracker" class="qr-img">
-    <div class="qr-info">
-      <strong>QR Code Akses Cepat (Nilai Tambah):</strong><br>
-      Arahkan kamera smartphone penguji ke QR Code di samping untuk langsung menguji aplikasi secara live pada peramban ponsel. Aplikasi telah teroptimasi responsif dan mendukung instalasi PWA (<em>Add to Home Screen</em>).
+  <h1>Bagian 2 • Tentang Aplikasi (Deskripsi &amp; Manfaat)</h1>
+  <p>
+    <strong>2.1 Deskripsi Singkat:</strong> GroceryTracker adalah aplikasi web mobile-first berbasis Progressive Web App (PWA) yang berfungsi ganda sebagai kalkulator belanja pintar dan sistem peringatan batas anggaran (<em>Budget Safety Cap</em>). Aplikasi ini mengatasi kendala klasik belanja bulanan di supermarket: ketidakpastian total tagihan di meja kasir, kerumitan menghitung promo diskon bertingkat (50% + 20%), fluktuasi harga kebutuhan pokok antar-toko, serta pembengkakan anggaran (<em>over-budget</em>).
+  </p>
+  <p>
+    <strong>2.2 Solusi Nyata &amp; Manfaat Bagi Masyarakat:</strong>
+  </p>
+  <ul>
+    <li><strong>Siswa &amp; Mahasiswa Rantau:</strong> Menjaga disiplin uang saku bulanan melalui indikator batas anggaran tegas agar tidak kehabisan bekal sebelum akhir bulan.</li>
+    <li><strong>Ibu Rumah Tangga &amp; Keluarga:</strong> Menyajikan kalkulasi diskon kompound presisi sehingga pengeluaran dapur transparan dan bebas dari jebakan diskon semu.</li>
+    <li><strong>Masyarakat Umum:</strong> Menampilkan komparasi fluktuasi harga kebutuhan pokok bulan ini dibanding bulan lalu pada katalog supermarket acuan (Lotte Mart, Superindo, Alfamart, Indomaret, dll).</li>
+    <li><strong>Sinkronisasi Realtime:</strong> Daftar belanja yang disusun di laptop di rumah seketika muncul di smartphone yang dibawa berbelanja ke supermarket melalui cloud WebSocket Port 443.</li>
+  </ul>
+  <p>
+    <strong>2.3 Target Pengguna:</strong> Siswa dan mahasiswa indekos, ibu rumah tangga, keluarga muda, serta masyarakat yang menerapkan gaya hidup hemat terencana (<em>frugal living</em>).
+  </p>
+
+  <div class="page-break"></div>
+
+  <!-- ====================================================================
+       HALAMAN 2: FITUR 1 & FITUR 2
+       ==================================================================== -->
+  <h1>Bagian 3 • Penjelasan Fitur &amp; Langkah Penggunaan</h1>
+
+  <h2>Fitur 1: Sistem Otentikasi Akun &amp; Sinkronisasi Cloud Multi-Device</h2>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/01_login_auth_screen.png" alt="Layar Otentikasi Akun">
+      <div class="caption">Gambar 1: Layar Otentikasi Akun (Login, Daftar, Google Sign-in, &amp; Mode Tamu)</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Mengamankan data sesi belanja pengguna secara privat. Mendukung login dengan email/password, registrasi akun baru, Google Sign-in satu klik, dan Mode Tamu. Menghubungkan sinkronisasi realtime dua arah antara laptop dan smartphone via Firebase Firestore &amp; WebSocket Port 443.</p>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Buka link aplikasi <code>https://smart-grocery-tracker-ochre.vercel.app/</code>.</li>
+        <li>Pada form Masuk, isi email (misal: <code>aileen@mutiarabangsa.sch.id</code>) dan password, lalu klik <strong>"Masuk ke Akun"</strong>.</li>
+        <li>Bagi pengguna baru, klik tab <strong>"Daftar Akun"</strong>, isi Nama Lengkap, Email, dan Password minimal 4 karakter.</li>
+        <li>Atau gunakan tombol <strong>"Lanjutkan dengan Google"</strong> untuk login cepat.</li>
+        <li>Setelah masuk, status akun tertera pada header dan sesi cloud aktif.</li>
+      </ol>
+      <p><strong>Contoh Kasus:</strong> Daftar belanjaan yang diketik di laptop seketika muncul di smartphone di supermarket.</p>
     </div>
   </div>
 
-  <!-- ====================================================================
-       BAGIAN 2: TENTANG APLIKASI (DESKRIPSI & MANFAAT MASYARAKAT)
-       ==================================================================== -->
-  <h1>Bagian 2 • Tentang Aplikasi (Deskripsi &amp; Manfaat)</h1>
-
-  <h2>2.1 Deskripsi Singkat Aplikasi</h2>
-  <p class="text-justify">
-    <strong>GroceryTracker</strong> adalah aplikasi mobile-first Progressive Web App (PWA) yang berfungsi sebagai asisten belanja pintar dan sistem peringatan keselamatan anggaran (<em>Budget Safety Cap</em>). Aplikasi ini dirancang secara khusus untuk menjawab permasalahan klasik saat berbelanja kebutuhan pokok bulanan: ketidakpastian total tagihan kasir, jebakan ilusi diskon bertingkat (seperti promo promo 50% + 20%), fluktuasi kenaikan harga barang yang tidak disadari, serta pembengkakan anggaran (<em>over-budget</em>).
-  </p>
-  <p class="text-justify">
-    Melalui antarmuka yang dioptimalkan untuk pengoperasian satu tangan saat mendorong troli di supermarket, pengguna dapat mencatat barang belanjaan secara langsung, melihat kalkulasi subtotal instan, memantau perbandingan harga dengan bulan sebelumnya, dan menerima peringatan visual tegas sebelum melangkah ke meja kasir.
-  </p>
-
-  <h2>2.2 Solusi Nyata &amp; Manfaat Bagi Masyarakat</h2>
-  <p class="text-justify">
-    Aplikasi GroceryTracker memberikan kontribusi nyata dalam literasi dan disiplin finansial keluarga maupun individu:
-  </p>
-  <ul>
-    <li><strong>Bagi Pelajar &amp; Siswa/Mahasiswa Rantau:</strong> Membantu mengelola uang saku bulanan yang ketat. Siswa rantau sering mengalami kehabisan uang di akhir bulan karena tidak menghitung barang belanjaan saat berada di lorong supermarket. Dengan safety cap, pengeluaran selalu terkontrol di bawah batas toleransi.</li>
-    <li><strong>Bagi Ibu Rumah Tangga &amp; Pengelola Keuangan Keluarga:</strong> Menghilangkan kecemasan saat di kasir ("apakah uang belanja cukup?"). Sistem memberikan kejelasan nilai hemat dari promo bertingkat sehingga keluarga tidak terkecoh diskon semu.</li>
-    <li><strong>Bagi Masyarakat Umum:</strong> Fitur pemantau fluktuasi harga memberikan data transparan mengenai komparasi harga barang pokok antar toko (Lotte Mart, Superindo, Alfamart, Indomaret, Hypermart, hingga Pasar Tradisional), sehingga masyarakat dapat menentukan lokasi belanja paling hemat.</li>
-    <li><strong>Tersinkronisasi Realtime Multi-Perangkat (Laptop &amp; Smartphone):</strong> Anggota keluarga di rumah dapat merencanakan daftar belanjaan di laptop/PC, dan anggota keluarga yang berada di supermarket langsung melihat daftar belanjaan terupdate secara live di layar HP detik itu juga.</li>
-  </ul>
-
-  <h2>2.3 Target Pengguna</h2>
-  <p class="text-justify">
-    Target pengguna aplikasi ini meliputi:
-  </p>
-  <ol>
-    <li>Pelajar dan mahasiswa yang hidup mandiri atau tinggal di asrama/kos.</li>
-    <li>Kepala keluarga dan ibu rumah tangga pengatur anggaran bulanan belanja dapur.</li>
-    <li>Masyarakat yang ingin menerapkan gaya hidup hemat dan terencana (<em>frugal living</em>).</li>
-    <li>Pengelola inventaris toko kelontong mikro untuk mencatat komparasi harga distributor.</li>
-  </ol>
-
-  <!-- ====================================================================
-       BAGIAN 3: PENJELASAN FITUR & LANGKAH PENGGUNAAN
-       ==================================================================== -->
-  <h1>Bagian 3 • Penjelasan Fitur &amp; Langkah Penggunaan</h1>
-  <p class="text-justify">
-    Bagian ini memuat dokumentasi mendalam mengenai 6 fitur unggulan aplikasi GroceryTracker, mencakup nama fitur spesifik, fungsi &amp; manfaat operasional, screenshot antarmuka asli, serta langkah penggunaan sistematis step-by-step.
-  </p>
-
-  <!-- FITUR 1: SISTEM OTENTIKASI & MULTI-DEVICE CLOUD SYNC -->
-  <h2>Fitur 1: Sistem Otentikasi Akun &amp; Sinkronisasi Cloud Multi-Perangkat</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Memberikan perlindungan privasi data belanja per akun pengguna. Fitur ini memungkinkan pengguna untuk login menggunakan akun Google (Gmail), mendaftar akun mandiri dengan email dan kata sandi, ataupun menggunakan Mode Tamu (<em>Guest Mode</em>). Data belanjaan secara otomatis tersinkronisasi dua arah secara real-time (0 ms latency) antara laptop dan smartphone menggunakan Firebase Firestore dan jalur WebSocket Cloud Bridge WSS Port 443.
-  </p>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/01_login_auth_screen.png" alt="Screenshot Layar Login dan Sign Up GroceryTracker" class="screenshot-img">
-    <div class="caption">Gambar 1: Layar Otentikasi Akun GroceryTracker (Masuk, Daftar Akun, Google Sign-In, &amp; Mode Tamu)</div>
-  </div>
-
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Buka link aplikasi di browser desktop atau smartphone: <code>https://smart-grocery-tracker-ochre.vercel.app/</code>.</li>
-    <li>Pada layar pertama yang muncul, pengguna disajikan pilihan:
-      <ul>
-        <li><strong>Tab "Masuk":</strong> Masukkan email (misal: <code>aileen@mutiarabangsa.sch.id</code>) dan password, lalu klik <strong>"Masuk ke Akun"</strong>.</li>
-        <li><strong>Tab "Daftar Akun":</strong> Jika belum memiliki akun, klik tab "Daftar Akun", masukkan Nama Lengkap, Email, dan Password minimal 4 karakter.</li>
-        <li><strong>Tombol "Lanjutkan dengan Google":</strong> Klik tombol ini untuk melakukan autentikasi instan satu klik via akun Google.</li>
-        <li><strong>Link "Lanjut sebagai Tamu":</strong> Jika ingin langsung menguji aplikasi tanpa registrasi akun.</li>
-      </ul>
-    </li>
-    <li>Setelah berhasil masuk, nama pengguna dan email akan tertera di badge header sebelah kanan, dan indikator <strong>"Sesi Cloud: [email pengguna]"</strong> aktif.</li>
-    <li>Buka link yang sama di perangkat kedua (misal HP dan Laptop) menggunakan akun yang sama. Setiap penambahan barang di satu perangkat seketika muncul di perangkat lainnya.</li>
-  </ol>
-
-  <!-- FITUR 2: KALKULASI BELANJA REALTIME & DISKON BERTIKAT KOMPOUND -->
   <h2>Fitur 2: Kalkulasi Belanja Realtime &amp; Diskon Bertingkat Kompound (F-03)</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Memecahkan formula matematis diskon bertingkat yang sering kali membingungkan konsumen di supermarket. Promo seperti <em>"Diskon 50% + 20%"</em> pada wajan seharga Rp 100.000 bukan berarti diskon 70% (Rp 30.000), melainkan dipotong 50% terlebih dahulu (menjadi Rp 50.000), kemudian dipotong lagi 20% dari sisa tersebut (menghasilkan harga bersih Rp 40.000). Modul ini menghitung formula kompound secara otomatis dan menampilkan kotak live preview hemat sebelum barang dimasukkan ke troli.
-  </p>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/03_input_diskon_kompound.png" alt="Screenshot Input Diskon Bertingkat Kompound" class="screenshot-img">
-    <div class="caption">Gambar 2: Form Input Item dengan Live Preview Diskon Kompound 50% + 20% pada Wajan Rp 100.000</div>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/03_input_diskon_kompound.png" alt="Input Diskon Bertingkat Kompound">
+      <div class="caption">Gambar 2: Live Preview Diskon Kompound 50% + 20% pada Wajan Rp 100.000</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Memecahkan kalkulasi diskon bertingkat yang kerap mengecoh konsumen. Promo wajan Rp 100.000 diskon 50% + 20% dihitung berjenjang: dipotong 50% menjadi Rp 50.000, lalu dipotong lagi 20% dari Rp 50.000, menghasilkan harga bersih tepat Rp 40.000 (hemat Rp 60.000), bukan Rp 30.000.</p>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Pada Tab Belanja, ketik Nama Barang (misal: <code>Wajan Teflon Serbaguna</code>).</li>
+        <li>Pilih Kategori (*Kebutuhan Rumah Tangga*) dan Satuan (*pcs*).</li>
+        <li>Ketik harga satuan <code>100000</code> (otomatis diformat koma <code>100,000</code>).</li>
+        <li>Masukkan kuantitas (misal: <code>1</code>).</li>
+        <li>Ketik promo bertingkat pada kolom diskon: <code>50% + 20%</code> (atau <code>50+20</code>).</li>
+        <li>Lihat kotak pratinjau: <em>Diskon Kompound: Rp 40.000 (Hemat Rp 60.000)</em>.</li>
+        <li>Klik tombol <strong>"Masukkan ke Keranjang"</strong> atau tekan <strong>Enter</strong>.</li>
+      </ol>
+      <p><strong>Hasil:</strong> Barang masuk ke troli dengan formula matematis yang akurat.</p>
+    </div>
   </div>
 
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Pada halaman utama tab <strong>Belanja</strong>, arahkan ke kartu <strong>"Masukkan ke Troli"</strong>.</li>
-    <li>Ketik Nama Barang pada kolom pertama (contoh: <code>Wajan Teflon Serbaguna</code>).</li>
-    <li>Pilih Kategori (misal: <em>Kebutuhan Rumah Tangga</em>) dan Satuan unit (misal: <em>pcs</em>).</li>
-    <li>Ketik Harga Satuan per unit. Input telah dilengkapi pemisah ribuan otomatis (misal ketik <code>100000</code>, sistem otomatis memformat menjadi <code>100,000</code>).</li>
-    <li>Masukkan Kuantitas barang (minimal 1).</li>
-    <li>Pada kolom <strong>"Diskon Promo (Opsional)"</strong>, ketik persentase diskon bertingkat:
-      <ul>
-        <li>Format standar: <code>50% + 20%</code></li>
-        <li>Format ringkas: <code>50+20</code></li>
-        <li>Format teks: <code>50% lalu 20%</code></li>
-        <li>Format diskon tunggal: <code>25%</code></li>
-      </ul>
-    </li>
-    <li>Perhatikan <strong>Live Preview Box</strong> yang seketika muncul di bawah input:
-      <ul>
-        <li><strong>Diskon Kompound:</strong> Rp 40.000</li>
-        <li><strong>Nominal Hemat:</strong> (Hemat Rp 60.000 &bull; 50% + 20%)</li>
-      </ul>
-    </li>
-    <li>Klik tombol hijau <strong>"Masukkan ke Keranjang"</strong> atau tekan tombol <strong>Enter</strong> pada keyboard.</li>
-  </ol>
-
-  <!-- FITUR 3: DAFTAR TROLI BELANJA, KONTROL KUANTITAS, & FLOATING ACTION BUTTON (FAB) -->
-  <h2>Fitur 3: Daftar Troli Belanja, Penggandaan Kuantitas, &amp; Floating Action Button (FAB)</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Menggantikan fungsi tabel desktop yang kaku dengan kartu item mobile ergonomis. Dilengkapi tombol penyesuaian kuantitas cepat (<code>+</code> dan <code>−</code>) dengan kalkulasi subtotal instan (0 ms), tombol edit rincian barang, tombol hapus per baris, tombol kosongkan seluruh troli, serta tombol melayang <strong>Floating Action Button (FAB) "Tambah Barang"</strong> di pojok kanan bawah agar pengguna dapat menambahkan belanjaan dengan satu jempol tangan saat mendorong troli.
-  </p>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/04_keranjang_troli_items.png" alt="Screenshot Daftar Troli Belanjaan dan FAB" class="screenshot-img">
-    <div class="caption">Gambar 3: Tampilan Kartu Troli Belanjaan, Subtotal Otomatis, dan Floating Action Button (FAB)</div>
-  </div>
-
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Setiap barang yang ditambahkan akan muncul sebagai kartu mandiri di dalam kontainer <strong>"Troli Belanjaan"</strong>.</li>
-    <li>Untuk mengubah jumlah kuantitas:
-      <ul>
-        <li>Klik tombol <strong><code>+</code> (Plus)</strong> untuk menambah kuantitas; Subtotal dan Grand Total seketika berlipat ganda.</li>
-        <li>Klik tombol <strong><code>−</code> (Minus)</strong> untuk mengurangi kuantitas. Sistem membatasi minimal 1 kuantitas agar data tidak rusak.</li>
-        <li>Pengguna juga dapat mengetikkan angka kuantitas secara langsung pada kotak input angka di antara tombol minus dan plus.</li>
-      </ul>
-    </li>
-    <li>Untuk mengedit nama, harga, atau promo barang: klik ikon pensil (<strong>Edit</strong>) pada kartu bersangkutan. Data barang akan dimuat kembali ke form input untuk disesuaikan.</li>
-    <li>Untuk menghapus satu item: klik ikon tempat sampah (<strong>Hapus</strong>). Item akan dikeluarkan dari troli dan total belanja disesuaikan seketika.</li>
-    <li>Untuk mengosongkan seluruh isi troli: klik teks tautan merah <strong>"Kosongkan"</strong> di sudut kanan atas kartu troli.</li>
-    <li><strong>Penggunaan Tombol FAB Melayang:</strong> Kapan pun layar digulir ke bawah, tombol hijau melayang <strong>"+ Tambah Barang"</strong> tetap siaga di pojok kanan bawah. Klik tombol ini untuk langsung melakukan <em>smooth scroll</em> dan memfokuskan kursor ke input nama barang tanpa perlu menggulir manual.</li>
-  </ol>
-
-  <!-- FITUR 4: SISTEM PENGENDALI ANGGARAN & SAFETY CAP WARNING (F-05) -->
-  <h2>Fitur 4: Sistem Pengendali Anggaran &amp; Safety Cap Warning (F-05)</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Melindungi pengguna dari risiko over-budget secara proaktif sebelum tiba di meja kasir. Sistem menerapkan aturan 3 ambang batas keselamatan finansial:
-  </p>
-  <ul>
-    <li><strong>Status Aman (&lt; 90%):</strong> Rasio belanja dalam batas aman. Kartu belanja bernuansa hijau <em>emerald</em> lembut.</li>
-    <li><strong>Status Waspada (&ge; 90% s.d. 100%):</strong> Peringatan dini bahwa saldo dompet hampir habis. Kartu dan indikator berubah warna menjadi <strong>Kuning / Amber</strong> dengan animasi denyut waspada.</li>
-    <li><strong>Bahaya Over Budget (&gt; 100%):</strong> Total belanjaan melampaui limit saldo dompet. Banner merah menyala tegas di bagian atas layar dan kartu troli berubah menjadi <strong>Merah Bahaya</strong>, menampilkan rincian defisit saldo (<em>Minus Rp ...</em>) serta rekomendasi pembatalan barang sekunder.</li>
-  </ul>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/05_safety_cap_overbudget.png" alt="Screenshot Peringatan Bahaya Over Budget Merah" class="screenshot-img">
-    <div class="caption">Gambar 4: Banner Peringatan Bahaya Over Budget (> 100%) dan Kartu Merah Tegas saat Belanja Melebihi Saldo</div>
-  </div>
-
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Perhatikan kartu ringkasan <strong>Quick Budget Meter</strong> yang melayang (*sticky*) di bagian atas layar saat berbelanja. Baris ini selalu menampilkan: Total Troli saat ini, status keamanan (Aman/Waspada/Bahaya), dan sisa saldo dompet.</li>
-    <li>Secara default, batas anggaran belanja disetel sebesar <strong>Rp 350.000</strong> (sesuai skenario studi kasus belanja bulanan Rian).</li>
-    <li>Saat memasukkan belanjaan dan total mencapai &ge; 90% (misal Rp 320.000), perhatikan warna kartu dan badge yang seketika berubah menjadi warna <strong>Kuning Waspada</strong>.</li>
-    <li>Jika total belanjaan melampaui limit (misal total Rp 114.000 pada limit saldo Rp 100.000, atau belanja Rp 360.000 pada limit Rp 350.000):
-      <ul>
-        <li>Banner merah bahaya berkedip menyala tegas di puncak layar.</li>
-        <li>Kartu Total Troli berubah menjadi warna merah dengan keterangan: <strong>"Melebihi Batas Saldo Dompet! Minus Rp 14.000"</strong>.</li>
-        <li>Dot indikator tab Anggaran di navbar bawah menyala merah.</li>
-      </ul>
-    </li>
-    <li>Pengguna dapat segera mengambil keputusan rasional: membatalkan atau mengurangi kuantitas barang kebutuhan sekunder (seperti wajan atau camilan) agar pengeluaran kembali ke status aman sebelum membayar di kasir.</li>
-  </ol>
-
-  <!-- FITUR 5: CATATAN RIWAYAT BELANJA STRUK DIGITAL & BELANJA ULANG -->
-  <h2>Fitur 5: Catatan Riwayat Belanja Struk Digital &amp; Tombol "Belanja Ulang"</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Merekam seluruh jejak transaksi belanja yang telah selesai sebagai struk digital modern. Pengguna dapat melacak pengeluaran masa lalu lengkap dengan nama toko, tanggal belanja, total biaya, dan status kepatuhan anggaran. Fitur unggulan <strong>"🔄 Belanja Ulang"</strong> memungkinkan pengguna memuat kembali seluruh daftar barang dari struk lama ke troli belanja aktif hanya dengan satu klik, sangat menghemat waktu saat berbelanja kebutuhan rutin bulanan.
-  </p>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/06_tab_riwayat_struk.png" alt="Screenshot Tab Riwayat Belanja Struk Digital" class="screenshot-img">
-    <div class="caption">Gambar 5: Tab Riwayat Belanja Menampilkan Struk Digital Selesai di Lotte Mart dan Superindo</div>
-  </div>
-
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Setelah selesai memasukkan seluruh barang belanjaan di tab Belanja, klik tombol hijau <strong>"Selesaikan Belanja &amp; Simpan Riwayat"</strong> di bawah daftar troli.</li>
-    <li>Sistem akan merekam struk digital baru, mengosongkan troli aktif, dan otomatis mengalihkan tampilan ke <strong>Tab Riwayat Toko</strong>.</li>
-    <li>Pada Tab Riwayat, pilih subtab <strong>"Riwayat Belanja"</strong>.</li>
-    <li>Setiap struk belanjaan menampilkan: Nama Supermarket, Tanggal Transaksi, Total Nominal Belanja, Badge Evaluasi Anggaran (<em>✅ Sesuai Anggaran</em> atau <em>⚠️ Melebihi Anggaran</em>), dan Ringkasan Barang.</li>
-    <li>Klik <strong>"Tampilkan Rincian Lengkap ▼"</strong> pada kartu struk untuk melihat daftar harga satuan per unit dan subtotal per item belanjaan.</li>
-    <li><strong>Melakukan Belanja Ulang:</strong> Jika di bulan berikutnya pengguna ingin membeli barang-barang yang sama persis, cukup klik tombol <strong>"🔄 Belanja Ulang"</strong> pada struk tersebut. Seketika seluruh item belanjaan dimuat kembali ke dalam troli aktif di tab Belanja.</li>
-    <li>Untuk menghapus riwayat lama yang sudah tidak dibutuhkan, klik tombol <strong>"🗑️ Hapus"</strong>.</li>
-  </ol>
-
-  <!-- FITUR 6: PRICE TRACKER & FLUKTUASI HARGA REALTIME (F-04) -->
-  <h2>Fitur 6: Price Tracker &amp; Fluktuasi Harga Realtime Antar Toko (F-04)</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Berfungsi sebagai intelijen pemantau pergerakan harga komparatif antara harga bulan berjalan (Oktober 2026) dengan harga bulan lalu (September 2026) pada toko yang sama maupun antar supermarket. Sistem menyajikan indikator visual standar:
-  </p>
-  <ul>
-    <li><strong style="color: #dc2626;">Panah Merah Naik (↑):</strong> Menandakan harga barang mengalami kenaikan (contoh: Beras Rojolele naik dari Rp 68.000 menjadi Rp 74.000, tercatat kenaikan +Rp 6.000 atau +8.8%).</li>
-    <li><strong style="color: #16a34a;">Panah Hijau Turun (↓):</strong> Menandakan harga barang mengalami penurunan / diskon (contoh: Telur 1kg turun dari Rp 32.000 menjadi Rp 28.000, tercatat penghematan -Rp 4.000 atau -12.5%).</li>
-    <li><strong style="color: #64748b;">Tanda Setara Abu-abu (=):</strong> Menandakan harga stabil tidak berubah (contoh: Garam 500g stabil di harga Rp 5.000 / 0%).</li>
-  </ul>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/07_tab_fluktuasi_harga.png" alt="Screenshot Fluktuasi Harga Realtime Supermarket" class="screenshot-img">
-    <div class="caption">Gambar 6: Katalog Fluktuasi Harga Realtime Bulan Ini vs Bulan Lalu dengan Indikator Visual Naik/Turun/Stabil</div>
-  </div>
-
-  <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
-  <ol>
-    <li>Pilih tab <strong>"Riwayat Toko"</strong> pada bottom navigation bar peramban ponsel.</li>
-    <li>Klik tombol filter <strong>"Fluktuasi Harga"</strong>.</li>
-    <li>Perhatikan ringkasan legenda visual di bagian atas (Legenda Naik, Turun, dan Stabil).</li>
-    <li>Pilih lokasi supermarket yang sedang dikunjungi melalui dropdown Lokasi Toko di header (tersedia pilihan resmi: <em>Lotte Mart Grocery - Puri Indah, Hypermart - Puri Indah, Superindo - Daan Mogot, Pasar Tradisional Puri, Indomaret Point,</em> dan <em>Alfamart</em>).</li>
-    <li>Sistem akan menyajikan katalog komparasi harga bulan ini vs bulan lalu khusus untuk toko terpilih.</li>
-    <li>Setiap baris komparasi dilengkapi tombol cepat <strong>"+ Ke Troli"</strong>. Klik tombol ini untuk langsung memasukkan barang tersebut ke dalam keranjang belanja tanpa perlu mengetik ulang nama dan harga.</li>
-  </ol>
-
-  <!-- FITUR TAMBAHAN: DASHBOARD ANGGARAN & PENGATUR LIMIT DOMPET -->
-  <h2>Fitur Pendukung: Dashboard Pengendali Anggaran (Tab 3 Anggaran)</h2>
-  <p class="text-justify">
-    <strong>Fungsi &amp; Manfaat:</strong> Memberikan kendali penuh kepada pengguna untuk mengatur dan menguji limit saldo dompet belanja bulanan secara fleksibel. Dilengkapi dengan chip preset cepat (Rp 100.000 untuk pengujian laboratorium, Rp 200.000, dan Rp 350.000 default kasus Rian), visual progress bar besar, serta indikator persentase rasio pengeluaran.
-  </p>
-
-  <div class="screenshot-container">
-    <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/08_tab_anggaran_safety_cap.png" alt="Screenshot Tab Dashboard Pengendali Anggaran" class="screenshot-img">
-    <div class="caption">Gambar 7: Dashboard Tab Anggaran dengan Kontrol Batas Saldo Dompet, Preset Cepat, &amp; Aturan Keselamatan</div>
-  </div>
+  <div class="page-break"></div>
 
   <!-- ====================================================================
-       BAGIAN 4: CARA MEMBUKA & MENJALANKAN APLIKASI
+       HALAMAN 3: FITUR 3 & FITUR 4
+       ==================================================================== -->
+  <h2>Fitur 3: Daftar Troli Belanja, Penggandaan Kuantitas, &amp; FAB Melayang</h2>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/04_keranjang_troli_items.png" alt="Daftar Troli Belanja dan FAB">
+      <div class="caption">Gambar 3: Kartu Troli Belanjaan, Kontrol Kuantitas, dan FAB Melayang</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Menyajikan belanjaan dalam kartu ergonomis mobile (tanpa tabel kaku). Dilengkapi tombol pengganda kuantitas cepat (<code>+</code> dan <code>−</code>) dengan pembaruan subtotal seketika (0 ms), tombol edit, hapus, kosongkan keranjang, serta tombol melayang <strong>FAB "+ Tambah Barang"</strong> untuk input cepat satu jempol.</p>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Item yang ditambahkan langsung tersusun pada daftar <strong>"Troli Belanjaan"</strong>.</li>
+        <li>Tekan tombol <strong><code>+</code></strong> untuk menambah jumlah atau <strong><code>−</code></strong> untuk mengurangi (kuantitas minimal 1). Subtotal langsung terhitung ulang.</li>
+        <li>Klik ikon <strong>Edit (Pensil)</strong> untuk mengubah nama atau harga barang.</li>
+        <li>Klik ikon <strong>Hapus (Tempat Sampah)</strong> untuk membuang item tertentu.</li>
+        <li>Gunakan tautan <strong>"Kosongkan"</strong> untuk mereset seluruh isi troli.</li>
+        <li>Saat menggulir ke bawah, klik tombol hijau melayang <strong>"+ Tambah Barang"</strong> di pojok kanan bawah untuk langsung melompat ke form input.</li>
+      </ol>
+      <p><strong>Contoh Kasus:</strong> Mengubah Minyak Goreng 1x (Rp 43.000) menjadi 3x seketika memperbarui subtotal menjadi Rp 129.000.</p>
+    </div>
+  </div>
+
+  <h2>Fitur 4: Pengendali Anggaran &amp; Safety Cap Warning (SRS F-05)</h2>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/05_safety_cap_overbudget.png" alt="Peringatan Bahaya Over Budget">
+      <div class="caption">Gambar 4: Banner Bahaya Over Budget (> 100%) dan Kartu Merah Menyala Tegas</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Mencegah risiko kehabisan uang di meja kasir melalui aturan 3 ambang batas finansial:</p>
+      <ul>
+        <li><strong>Aman (&lt; 90%):</strong> Status aman, pengeluaran dalam batas kendali.</li>
+        <li><strong>Waspada (&ge; 90% s.d. 100%):</strong> Kartu berubah kuning, saldo menipis.</li>
+        <li><strong>Bahaya Over Budget (&gt; 100%):</strong> Banner merah menyala tegas di atas layar, kartu belanja berubah merah pekat, menampilkan defisit saldo (<em>Minus Rp ...</em>), dan merekomendasikan pembatalan barang sekunder.</li>
+      </ul>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Pantau kartu <strong>Total Troli Melayang</strong> (*sticky*) di bagian atas layar.</li>
+        <li>Batas anggaran default disetel sebesar <strong>Rp 350.000</strong> (atau diatur di Tab 3).</li>
+        <li>Saat belanjaan mencapai &ge; 90%, kartu belanja berganti warna menjadi kuning.</li>
+        <li>Jika belanjaan melebihi limit (misal total Rp 114.000 pada batas saldo Rp 100.000), banner merah bahaya menyala tegas bertuliskan <em>"Melebihi Batas Saldo Dompet! Minus Rp 14.000"</em>.</li>
+        <li>Pengguna dapat segera membatalkan barang sekunder sebelum menuju kasir.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ====================================================================
+       HALAMAN 4: FITUR 5 & FITUR 6
+       ==================================================================== -->
+  <h2>Fitur 5: Riwayat Belanja Struk Digital &amp; Tombol "Belanja Ulang"</h2>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/06_tab_riwayat_struk.png" alt="Tab Riwayat Belanja Struk Digital">
+      <div class="caption">Gambar 5: Tab Riwayat Belanja Menampilkan Struk Digital Selesai di Lotte Mart &amp; Superindo</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Mengarsipkan transaksi belanja yang telah selesai ke dalam format struk digital modern. Pengguna dapat meninjau riwayat pengeluaran masa lalu lengkap dengan tanggal, supermarket, rincian item, dan status evaluasi anggaran. Tombol <strong>"🔄 Belanja Ulang"</strong> memuat kembali seluruh barang dari struk lama ke troli aktif hanya dengan satu sentuhan.</p>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Di Tab Belanja, tekan tombol <strong>"Selesaikan Belanja &amp; Simpan Riwayat"</strong>.</li>
+        <li>Aplikasi otomatis merekam struk digital baru dan membuka Tab Riwayat Toko.</li>
+        <li>Pilih subtab <strong>"Riwayat Belanja"</strong> untuk melihat arsip struk.</li>
+        <li>Klik <strong>"Tampilkan Rincian Lengkap ▼"</strong> untuk memeriksa harga satuan per unit.</li>
+        <li>Untuk berbelanja barang rutin yang sama di bulan berikutnya, klik tombol <strong>"🔄 Belanja Ulang"</strong>. Seluruh daftar belanjaan langsung dimuat kembali ke troli aktif di Tab Belanja.</li>
+      </ol>
+      <p><strong>Contoh Kasus:</strong> Struk belanja di Lotte Mart sebesar Rp 213.000 langsung termuat kembali ke keranjang tanpa perlu mengetik ulang satu per satu.</p>
+    </div>
+  </div>
+
+  <h2>Fitur 6: Price Tracker &amp; Fluktuasi Harga Realtime Antar Toko (F-04)</h2>
+  <div class="feature-layout">
+    <div class="feature-media">
+      <img src="https://raw.githubusercontent.com/Aileen1499/smart-grocery-tracker/main/screenshots/07_tab_fluktuasi_harga.png" alt="Fluktuasi Harga Realtime Supermarket">
+      <div class="caption">Gambar 6: Katalog Fluktuasi Harga Realtime Bulan Ini vs Bulan Lalu dengan Indikator Naik, Turun, &amp; Stabil</div>
+    </div>
+    <div class="feature-desc">
+      <p><strong>Fungsi &amp; Manfaat:</strong> Memantau dinamika pergerakan harga komparatif antara harga bulan ini (Oktober 2026) dengan harga bulan lalu (September 2026) pada toko terpilih. Menyediakan indikator visual baku:</p>
+      <ul>
+        <li><strong>Panah Naik (↑):</strong> Harga naik (misal Beras Rojolele naik +Rp 6.000 / +8.8%).</li>
+        <li><strong>Panah Turun (↓):</strong> Harga turun (misal Telur 1kg turun -Rp 4.000 / -12.5%).</li>
+        <li><strong>Tanda Setara (=):</strong> Harga stabil (misal Garam 500g stabil Rp 5.000 / 0%).</li>
+      </ul>
+      <p><strong>Langkah Penggunaan (Step-by-Step):</strong></p>
+      <ol>
+        <li>Buka tab <strong>"Riwayat Toko"</strong> pada navigasi bawah.</li>
+        <li>Klik tombol filter <strong>"Fluktuasi Harga"</strong>.</li>
+        <li>Pilih supermarket pada dropdown header (Lotte Mart, Superindo, Alfamart, Indomaret, Hypermart, Pasar Tradisional).</li>
+        <li>Periksa persentase kenaikan atau penurunan harga pada katalog barang.</li>
+        <li>Klik tombol <strong>"+ Ke Troli"</strong> untuk memasukkan barang acuan ke keranjang.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ====================================================================
+       HALAMAN 5: CARA MENJALANKAN, FAQ, WISHLIST, & VIDEO WALKTHROUGH
        ==================================================================== -->
   <h1>Bagian 4 • Cara Membuka &amp; Menjalankan Aplikasi</h1>
-  <p class="text-justify">
-    Aplikasi GroceryTracker dibangun dengan pendekatan standar web modern murni (<em>zero-dependency web architecture</em>), sehingga dapat dijalankan secara instan di berbagai platform tanpa perlu instalasi aplikasi pihak ketiga yang rumit.
-  </p>
-
-  <h2>4.1 Akses Melalui Web Browser Desktop / Laptop</h2>
-  <ol>
-    <li>Buka peramban web modern di komputer Anda (disarankan menggunakan Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari).</li>
-    <li>Masukkan alamat live URL berikut pada kolom URL:
-      <div style="background:#f1f5f9; padding:6px 12px; border-radius:4px; font-family:Consolas, monospace; margin:6px 0;">
-        https://smart-grocery-tracker-ochre.vercel.app/
-      </div>
-    </li>
-    <li>Pada layar komputer/laptop, aplikasi akan ditampilkan dalam <em>mobile-frame view</em> elegan (lebar maksimal 430px centered) berlatar belakang gelap profesional, mensimulasikan penggunaan smartphone yang sebenarnya.</li>
-  </ol>
-
-  <h2>4.2 Akses Melalui Smartphone (Mobile Browser)</h2>
-  <ol>
-    <li>Buka peramban Google Chrome (Android) atau Safari (iOS iPhone) pada smartphone Anda.</li>
-    <li>Ketik URL <code>https://smart-grocery-tracker-ochre.vercel.app/</code> atau pindai QR Code yang tertera pada Bagian 1 dokumen ini.</li>
-    <li>Aplikasi akan otomatis menyesuaikan ukuran layar ponsel Anda secara penuh (<em>full viewport height</em>) dengan antarmuka yang sangat responsif, tombol navigasi jempol melayang di bagian bawah, dan ukuran target sentuh ergonomis (minimal 44px) yang nyaman dioperasikan saat berjalan di lorong toko.</li>
-  </ol>
-
-  <h2>4.3 Panduan Instalasi Progressive Web App (PWA) &bull; Add to Home Screen</h2>
-  <p class="text-justify">
-    Aplikasi GroceryTracker telah dilengkapi manifest PWA resmi (<code>manifest.json</code>) dan Service Worker cache (<code>sw.js</code> versi v18). Pengguna dapat menginstalnya layaknya aplikasi native Android/iOS tanpa melalui Google Play Store atau App Store:
+  <p>
+    Aplikasi dibangun berbasis Progressive Web App (PWA) tanpa membutuhkan instalasi software rumit (<em>zero-dependency</em>):
   </p>
   <ul>
-    <li><strong>Pada Android (Google Chrome):</strong>
-      <ol>
-        <li>Buka website GroceryTracker di Google Chrome.</li>
-        <li>Ketuk ikon titik tiga (<strong>⋮</strong>) di pojok kanan atas browser.</li>
-        <li>Pilih menu <strong>"Tambahkan ke Layar Utama"</strong> (atau <em>"Install App"</em>).</li>
-        <li>Ketuk <strong>"Instal"</strong>. Ikon GroceryTracker dengan logo troli belanja hijau akan muncul di layar utama smartphone Anda dan dapat dibuka tanpa bilah URL browser (<em>standalone mode</em>).</li>
-      </ol>
-    </li>
-    <li><strong>Pada iPhone / iPad (Safari iOS):</strong>
-      <ol>
-        <li>Buka website GroceryTracker di peramban Safari.</li>
-        <li>Ketuk tombol <strong>Share</strong> (ikon kotak dengan panah mengarah ke atas di bar navigasi bawah).</li>
-        <li>Gulir ke bawah dan ketuk opsi <strong>"Add to Home Screen"</strong> (<em>Tambah ke Layar Utama</em>).</li>
-        <li>Beri nama "GroceryTracker" lalu ketuk <strong>"Add"</strong> di pojok kanan atas.</li>
-      </ol>
+    <li><strong>Browser Desktop / Laptop:</strong> Buka tautan <code>https://smart-grocery-tracker-ochre.vercel.app/</code> di Chrome, Firefox, Edge, atau Safari. Antarmuka otomatis terpusat dalam *mobile frame* 430px modern.</li>
+    <li><strong>Smartphone Browser:</strong> Buka URL aktif pada peramban ponsel atau scan QR Code di Halaman 1. Tampilan menyesuaikan layar ponsel secara penuh (*full viewport*).</li>
+    <li><strong>Instalasi PWA (Add to Home Screen):</strong>
+      <ul>
+        <li><em>Android (Chrome):</em> Ketuk menu titik tiga (⋮) &rarr; pilih <strong>"Tambahkan ke Layar Utama" / "Install App"</strong> &rarr; ketuk <strong>Instal</strong>.</li>
+        <li><em>iOS (Safari):</em> Ketuk tombol <strong>Share</strong> (ikon kotak panah ke atas) &rarr; pilih <strong>"Add to Home Screen"</strong> &rarr; ketuk <strong>Add</strong>.</li>
+      </ul>
     </li>
   </ul>
 
-  <!-- ====================================================================
-       BAGIAN 5: TANYA JAWAB & KENDALA UMUM (FAQ)
-       ==================================================================== -->
   <h1>Bagian 5 • Tanya Jawab &amp; Kendala Umum (FAQ)</h1>
+  <p><strong>Q1: Apakah data belanjaan hilang jika browser tertutup atau di-refresh (F5)?</strong><br>
+  <strong>Jawaban:</strong> Tidak hilang. Aplikasi menggunakan <em>Dual Storage Architecture</em>. Seluruh isi troli, limit dompet, dan struk disimpan ke Local Storage secara otomatis sehingga langsung pulih saat aplikasi dibuka kembali.</p>
 
-  <h2>Q1: Apakah data belanjaan saya akan hilang jika browser tidak sengaja tertutup atau saya menekan tombol refresh (F5)?</h2>
-  <p class="text-justify">
-    <strong>Jawaban:</strong> Tidak akan hilang. Aplikasi GroceryTracker menerapkan arsitektur penyimpanan ganda (<em>Dual Storage Architecture</em>). Setiap perubahan pada troli belanja, batas saldo, histori struk, maupun catatan harga otomatis disimpan ke <strong>Local Storage</strong> peramban secara lokal detik itu juga. Saat halaman di-refresh (F5) atau peramban dibuka kembali keesokan harinya, seluruh isi keranjang dan pengaturan tetap pulih secara utuh.
-  </p>
+  <p><strong>Q2: Apakah aplikasi tetap berfungsi di supermarket basement yang tidak ada sinyal internet?</strong><br>
+  <strong>Jawaban:</strong> Ya, berfungsi penuh. Service Worker PWA menyimpan seluruh aset kode program di memori offline ponsel. Pengguna tetap dapat menghitung belanjaan dan menyimpan struk tanpa koneksi internet.</p>
 
-  <h2>Q2: Bagaimana jika saya berbelanja di area supermarket basement yang sinyal internetnya lemah atau offline?</h2>
-  <p class="text-justify">
-    <strong>Jawaban:</strong> Aplikasi tetap berfungsi 100% normal. Karena dibangun dengan Service Worker PWA, seluruh aset antarmuka (HTML, CSS, JavaScript, ikon) telah di-cache ke dalam memori ponsel. Pengguna tetap dapat memasukkan barang, menghitung diskon kompound, mengubah kuantitas, memantau indikator keselamatan anggaran, dan menyimpan struk belanjaan secara offline. Begitu smartphone kembali mendapatkan koneksi internet, data secara otomatis disinkronkan ke Cloud Firestore.
-  </p>
+  <p><strong>Q3: Mengapa sistem menolak input harga minus (-Rp 15.000) atau nama kosong?</strong><br>
+  <strong>Jawaban:</strong> Merupakan sistem validasi pengamanan data bawaan (SRS F-01) untuk mencegah rusaknya formula matematis grand total dan laporan keuangan pengguna.</p>
 
-  <h2>Q3: Mengapa saat saya mencoba memasukkan harga bernilai negatif (-Rp 15.000) atau nama barang kosong, aplikasi menolak input tersebut?</h2>
-  <p class="text-justify">
-    <strong>Jawaban:</strong> Hal tersebut adalah fitur pengamanan validasi input bawaan (sesuai standar SRS F-01 dan Skenario Uji DT2). Sistem dirancang kokoh untuk menolak masukan yang salah (seperti harga minus atau nama barang kosong) guna mencegah kerusakan formula matematis grand total dan laporan riwayat belanja. Pesan peringatan kesalahan akan muncul langsung di bawah kolom terkait tanpa menggunakan pop-up browser bawaan yang mengganggu.
-  </p>
+  <p><strong>Q4: Bagaimana cara sinkronisasi antara laptop dan smartphone?</strong><br>
+  <strong>Jawaban:</strong> Masuklah dengan akun email yang sama (misal <code>aileen@mutiarabangsa.sch.id</code>). Sesi cloud akan otomatis terhubung via WebSocket WSS Port 443 secara live.</p>
 
-  <h2>Q4: Bagaimana cara memastikan belanjaan di laptop dan HP tersinkronisasi pada akun yang sama?</h2>
-  <p class="text-justify">
-    <strong>Jawaban:</strong> Pastikan Anda masuk menggunakan alamat email yang sama di kedua perangkat (misal: <code>aileen@mutiarabangsa.sch.id</code>). Aplikasi secara otomatis mengikat sesi cloud ke email tersebut (contoh: <code>user_aileen_mutiarabangsa_sch_id</code>). Indikator pulsing dot hijau pada header akan bertuliskan nama akun Anda, dan setiap perubahan item di laptop akan langsung terpantul di layar HP Anda secara live melalui jalur WebSocket Port 443.
-  </p>
-
-  <!-- ====================================================================
-       BAGIAN 6: RENCANA FITUR TAMBAHAN (WISHLIST)
-       ==================================================================== -->
   <h1>Bagian 6 • Rencana Fitur Tambahan (Wishlist)</h1>
-  <p class="text-justify">
-    Sebagai wujud komitmen terhadap skalabilitas produk perangkat lunak di masa mendatang, berikut adalah 3 rencana pengembangan fitur lanjutan yang disiapkan untuk versi GroceryTracker berikutnya:
-  </p>
+  <ol>
+    <li><strong>Pemindaian Barcode &amp; Struk Kamera AI (OCR):</strong> Memotret struk belanja atau barcode rak supermarket untuk mengisi form otomatis tanpa mengetik.</li>
+    <li><strong>Ekspor Laporan Keuangan ke PDF &amp; Excel:</strong> Mencetak laporan pertanggungjawaban uang saku bulanan ke format file PDF atau spreadsheet (.xlsx).</li>
+    <li><strong>Rekomendasi Cerdas Toko Termurah:</strong> Memberikan saran otomatis supermarket alternatif terdekat yang menjual barang sejenis dengan harga lebih hemat.</li>
+  </ol>
 
-  <h2>6.1 Pemindaian Barcode &amp; Struk Belanja Otomatis dengan Kamera AI (OCR)</h2>
-  <p class="text-justify">
-    Mengintegrasikan modul Optical Character Recognition (OCR) berbasis kecerdasan buatan (Google Vision / Gemini API) dan pemindai barcode kamera ponsel. Pengguna cukup mengarahkan kamera ke label harga rak supermarket atau struk kertas kasir, dan sistem akan langsung mengekstrak nama barang, harga satuan, serta diskon tanpa perlu mengetik manual satu per satu.
-  </p>
-
-  <h2>6.2 Ekspor Laporan Pengeluaran Finansial ke Format PDF &amp; Spreadsheet Excel</h2>
-  <p class="text-justify">
-    Menambahkan tombol ekspor laporan belanja bulanan formal dalam format dokumen PDF bertanda tangan digital atau berkas Microsoft Excel (.xlsx / .csv). Fitur ini sangat bermanfaat bagi mahasiswa rantau untuk melaporkan pertanggungjawaban uang saku kepada orang tua atau bendahara rumah tangga dalam mengevaluasi arus kas bulanan.
-  </p>
-
-  <h2>6.3 Sistem Rekomendasi Pintar Substitusi Barang Hemat &amp; Notifikasi Pengingat</h2>
-  <p class="text-justify">
-    Menyematkan algoritma rekomendasi belanja alternatif. Ketika sistem mendeteksi barang belanjaan yang dimasukkan pengguna mengalami lonjakan harga tinggi pada toko tersebut, aplikasi akan memberikan rekomendasi cerdas: <em>"Beras merk X di toko Y saat ini lebih hemat Rp 8.000"</em>, serta pengingat berkala jadwal belanja bahan pokok sebelum persediaan di rumah habis.
-  </p>
-
-  <!-- ====================================================================
-       NILAI TAMBAH: PANDUAN PRAKTIS & TIPS BELANJA HEMAT
-       ==================================================================== -->
-  <h1>Nilai Tambah (Nilai A+) • Tips Praktis Belanja Cerdas</h1>
-  <div class="callout-box">
-    <strong>Panduan Efisiensi Belanja Cerdas Bagi Pelajar &amp; Keluarga:</strong>
-    <ol style="margin-top:6px; margin-bottom:0;">
-      <li><strong>Tetapkan Saldo Sebelum Masuk Toko:</strong> Selalu tentukan limit saldo belanja di Tab Anggaran sebelum melangkah masuk ke pintu supermarket.</li>
-      <li><strong>Input Barang Saat Mengambil dari Rak:</strong> Masukkan item dan kuantitas ke aplikasi sesaat setelah memasukkan barang fisik ke dalam keranjang troli, bukan saat sudah mengantre di kasir.</li>
-      <li><strong>Manfaatkan Diskon Kompound Cerdas:</strong> Gunakan live preview box untuk memastikan apakah promo "Beli 2 Diskon Tambahan 20%" benar-benar menguntungkan dibandingkan membeli satu satuan.</li>
-      <li><strong>Patuhi Peringatan Safety Cap:</strong> Jika kartu troli berubah warna menjadi merah, segera seleksi barang di troli dan batalkan kebutuhan non-pokok sebelum menuju kasir.</li>
-    </ol>
+  <!-- Bagian Video Walkthrough Sesuai Permintaan Siswa -->
+  <div class="video-box">
+    <div class="video-box-header">Video Walkthrough Penggunaan Aplikasi (Demo Praktik)</div>
+    <p style="margin-bottom: 3pt;">
+      Demonstrasi langsung pengoperasian fitur GroceryTracker (login, kalkulasi diskon kompound, kontrol troli, uji batas keselamatan anggaran, hingga penerbitan struk digital) dapat disaksikan melalui tautan resmi berikut:
+    </p>
+    <p style="margin-bottom: 2pt;">
+      <strong>Tautan Video Google Drive / YouTube:</strong><br>
+      <a href="https://smart-grocery-tracker-ochre.vercel.app/#video-demo" target="_blank" style="color: #000000; font-weight: bold; text-decoration: underline;">
+        https://smart-grocery-tracker-ochre.vercel.app/#video-demo (Video Walkthrough Project GroceryTracker)
+      </a>
+    </p>
+    <p style="font-size: 9pt; font-style: italic; margin-bottom: 0;">
+      Catatan Penguji: Rekaman video mendemonstrasikan kelancaran alur penggunaan step-by-step tanpa lag pada perangkat mobile dan sinkronisasi realtime multi-device.
+    </p>
   </div>
 
-  <!-- Footer Dokumen -->
-  <div style="margin-top: 40px; padding-top: 14px; border-top: 1px solid #cbd5e1; font-size: 10pt; color: #64748b; text-align: center;">
-    Dokumen Praktik Mandiri PT Pertemuan 18~19 &bull; Disusun oleh Aileen (Kelas 12 MIPA) &bull; SMA Mutiara Bangsa 2 Tangerang &bull; Tahun Ajaran 2026/2027
+  <div style="margin-top: 8pt; padding-top: 4pt; border-top: 1pt solid #000000; font-size: 9pt; text-align: center;">
+    Naskah Dokumentasi Resmi Practical Test (PT) &bull; Aileen Pheeby Angelica (Nomor Absen: 1 &bull; Kelas: 12C) &bull; SMA Mutiara Bangsa 2 Tangerang
   </div>
 
 </body>
