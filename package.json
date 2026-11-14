@@ -15,6 +15,8 @@
     "pwa"
   ],
   "author": "ICT Codehub Mutiara Bangsa 2",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "docx": "^9.15.4"
+  }
 }
-
