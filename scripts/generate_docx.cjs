@@ -485,7 +485,7 @@ const doc = new Document({
                 makeCell([
                   p("VIDEO WALKTHROUGH & REKAMAN OPERASIONAL APLIKASI", { bold: true, align: AlignmentType.CENTER, after: 60 }),
                   p("Untuk menyaksikan rekaman video operasional dan simulasi alur belanja mandiri aplikasi GroceryTracker, silakan akses tautan publik berikut:", { size: 20 }),
-                  p("• Tautan Video Walkthrough: https://smart-grocery-tracker-ochre.vercel.app/#video-walkthrough", { bold: true, size: 21, after: 40 }),
+                  p("• Tautan Video Walkthrough: https://smart-grocery-tracker-ochre.vercel.app/video-walkthrough.html", { bold: true, size: 21, after: 40 }),
                   p("• Repositori GitHub Proyek: https://github.com/Aileen1499/smart-grocery-tracker.git", { bold: true, size: 21, after: 40 }),
                   p("Tautan di atas dapat dibuka langsung melalui peramban web desktop maupun smartphone.", { italic: true, size: 18 })
                 ], 100)

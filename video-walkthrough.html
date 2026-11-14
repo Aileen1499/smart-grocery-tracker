@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Video Walkthrough • GroceryTracker - Aileen Pheeby Angelica</title>
+  <meta name="description" content="Video walkthrough demonstrasi resmi alur operasional aplikasi web GroceryTracker karya Aileen Pheeby Angelica (12C / 01).">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d10;
+      --bg-card: #131d1b;
+      --bg-surface: #1a2724;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-glow: rgba(16, 185, 129, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #243834;
+      --accent-danger: #ef4444;
+      --accent-warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .top-navbar {
+      background: rgba(19, 29, 27, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #0f766e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-live {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-action {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      background: var(--primary);
+      color: #052e16;
+      border-color: var(--primary);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Header Section */
+    .hero-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffffff 60%, #a7f3d0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-meta {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .hero-meta strong {
+      color: var(--text-main);
+    }
+
+    /* Cinema Video Player Container */
+    .video-viewport-wrapper {
+      background: #000000;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(16, 185, 129, 0.1);
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .video-element-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Fallback Animated Canvas Player */
+    #fallbackCanvas {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    /* Cinema Control Bar */
+    .player-controls {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-play-pause {
+      background: var(--primary);
+      color: #052e16;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .btn-play-pause:hover {
+      transform: scale(1.06);
+      background: #34d399;
+    }
+
+    .time-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .time-current {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .ctrl-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-download-video {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-download-video:hover {
+      background: var(--primary);
+      color: #052e16;
+    }
+
+    /* Chapters Interactive Grid */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .chapter-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      gap: 12px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .chapter-card:hover {
+      border-color: var(--primary);
+      background: var(--bg-surface);
+      transform: translateY(-2px);
+    }
+
+    .chapter-card.active {
+      border-color: var(--primary);
+      background: rgba(16, 185, 129, 0.1);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+    }
+
+    .chapter-badge {
+      background: #0f766e;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chapter-info {
+      flex: 1;
+    }
+
+    .chapter-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .chapter-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .chapter-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Live Narration Box */
+    .narration-box {
+      background: linear-gradient(135deg, #131d1b 0%, #172a26 100%);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 32px;
+    }
+
+    .narration-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .narration-text {
+      font-size: 0.98rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    /* Practical Test Info Footer */
+    .pt-info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .pt-info-text h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .pt-info-text p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .pt-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero-title { font-size: 1.45rem; }
+      .container { padding: 16px 12px 32px; }
+      .chapters-grid { grid-template-columns: 1fr; }
+      .pt-info-card { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="top-navbar">
+    <a href="/" class="brand-group">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+          <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">GroceryTracker <span class="badge-live">Walkthrough</span></div>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="/" class="btn-action">
+        <span>🛒 Buka Aplikasi</span>
+      </a>
+      <a href="/docs/Dokumentasi_Project_GroceryTracker_Aileen.html" class="btn-action">
+        <span>📄 Dokumentasi</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Content Container -->
+  <main class="container">
+
+    <!-- Hero Header -->
+    <div class="hero-header">
+      <div class="hero-tag">Official Product Demonstration</div>
+      <h1 class="hero-title">Video Walkthrough &amp; Panduan Operasional</h1>
+      <div class="hero-meta">
+        <span>Nama: <strong>Aileen Pheeby Angelica</strong></span>
+        <span>•</span>
+        <span>Kelas: <strong>12C</strong></span>
+        <span>•</span>
+        <span>Absen: <strong>1</strong></span>
+        <span>•</span>
+        <span>SMA Mutiara Bangsa 2 Tangerang</span>
+      </div>
+    </div>
+
+    <!-- Cinema Video Viewport -->
+    <div class="video-viewport-wrapper">
+      <div class="video-element-container">
+        <!-- Native Video Element -->
+        <video id="mainVideo" controls autoplay playsinline loop preload="auto">
+          <source src="videos/walkthrough.webm" type="video/webm">
+          Browser Anda tidak mendukung pemutar video WebM bawaan.
+        </video>
+        <!-- Interactive Canvas Fallback -->
+        <canvas id="fallbackCanvas" width="1280" height="720"></canvas>
+      </div>
+
+      <!-- Cinema Control Bar -->
+      <div class="player-controls">
+        <div class="ctrl-left">
+          <button type="button" id="btnPlayPause" class="btn-play-pause" title="Play / Pause">⏸</button>
+          <div class="time-display">
+            <span id="currTime" class="time-current">0:00</span> / <span id="durTime">0:17</span>
+          </div>
+        </div>
+        <div class="ctrl-right">
+          <a href="videos/walkthrough.webm" download="GroceryTracker_Walkthrough_Aileen.webm" class="btn-download-video">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Unduh Video (.webm)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Step Narration Box -->
+    <div class="narration-box">
+      <div class="narration-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <span>Penjelasan Langkah Aktif (Narasi Walkthrough)</span>
+      </div>
+      <p id="narrationText" class="narration-text">
+        Menyiapkan demonstrasi aplikasi...
+      </p>
+    </div>
+
+    <!-- Chapter Selector Grid -->
+    <h3 class="section-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/>
+      </svg>
+      <span>Pilih Bab Demonstrasi Fitur (Lompat ke Adegan)</span>
+    </h3>
+
+    <div class="chapters-grid" id="chaptersContainer">
+      <!-- Generated via JS -->
+    </div>
+
+    <!-- Practical Test Info Footer Card -->
+    <div class="pt-info-card">
+      <div class="pt-info-text">
+        <h4>Practical Test (PT) Informatika Pertemuan 18~19</h4>
+        <p>Aplikasi web Progressive Web App (PWA) GroceryTracker telah teruji mandiri dan dapat diakses publik.</p>
+      </div>
+      <div class="pt-links">
+        <a href="https://smart-grocery-tracker-ochre.vercel.app/" target="_blank" class="btn-action">
+          <span>🚀 Buka Live App</span>
+        </a>
+        <a href="https://github.com/Aileen1499/smart-grocery-tracker.git" target="_blank" class="btn-action">
+          <span>⭐ GitHub Repo</span>
+        </a>
+        <a href="/docs/Dokumentasi_Project_GroceryTracker_Aileen.docx" class="btn-action">
+          <span>📥 Unduh DOCX (5 Hal)</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const CHAPTERS = [
+      {
+        time: 0,
+        endTime: 2.5,
+        title: "1. Otentikasi Akun & Login Google",
+        desc: "Sistem login email, password, Google Sign-In, serta Mode Tamu instan.",
+        narration: "Bab 1: Otentikasi Akun Terintegrasi. Pengguna dapat masuk menggunakan akun Google (aileen@mutiarabangsa.sch.id), mendaftar akun baru, atau menggunakan Mode Tamu untuk pengujian instan tanpa login."
+      },
+      {
+        time: 2.5,
+        endTime: 5.0,
+        title: "2. Pemilihan Toko & Quick Budget",
+        desc: "Memilih lokasi ritel (Superindo, Lotte Mart) dan melihat pagu anggaran saldo.",
+        narration: "Bab 2: Memilih Toko Ritel & Budget Meter. Konsumen memilih supermarket belanja (Superindo / Lotte Mart) dan memantau limit saldo anggaran yang melayang di bagian atas layar secara realtime."
+      },
+      {
+        time: 5.0,
+        endTime: 7.5,
+        title: "3. Diskon Kompound 50% + 20%",
+        desc: "Kalkulasi promo wajan Rp 100.000 menjadi Rp 40.000 (Hemat Rp 60.000).",
+        narration: "Bab 3: Diskon Bertingkat Kompound (50% + 20%). Promo wajan Rp 100.000 dipotong 50% lalu dipotong lagi 20%, menghasilkan kalkulasi presisi Rp 40.000 (hemat Rp 60.000) tanpa kesalahan."
+      },
+      {
+        time: 7.5,
+        endTime: 10.0,
+        title: "4. Troli Belanja & Kuantitas (+/-)",
+        desc: "Penggandaan kuantitas seketika (0 ms) dan tombol melayang Tambah Barang.",
+        narration: "Bab 4: Pengelolaan Troli Digital. Kartu belanjaan modern dilengkapi tombol pengganda kuantitas instan (+ dan -), hapus item, dan tombol bundar melayang (+ Tambah Barang) satu jempol."
+      },
+      {
+        time: 10.0,
+        endTime: 12.5,
+        title: "5. Peringatan Bahaya Over Budget",
+        desc: "Banner bahaya merah pekat dan kartu menyala saat pengeluaran > 100%.",
+        narration: "Bab 5: Safety Cap Warning (> 100%). Saat belanjaan melampaui alokasi dompet (Rp 114.000 / Rp 100.000), banner merah bahaya menyala tegas memperingatkan defisit anggaran sebelum ke kasir."
+      },
+      {
+        time: 12.5,
+        endTime: 15.0,
+        title: "6. Riwayat Struk & Belanja Ulang",
+        desc: "Arsip digital struk per toko dan tombol 🔄 Belanja Ulang satu klik.",
+        narration: "Bab 6: Tab Riwayat & Belanja Ulang. Rekapan struk belanja masa lalu tersimpan rapi. Tombol 'Belanja Ulang' menduplikasi seluruh daftar item belanjaan lama ke troli baru dalam 1 sentuhan."
+      },
+      {
+        time: 15.0,
+        endTime: 17.5,
+        title: "7. Fluktuasi Harga Realtime",
+        desc: "Komparasi perbandingan harga sembako antar-supermarket naik, turun, dan stabil.",
+        narration: "Bab 7: Fluktuasi Harga Komoditas Realtime. Menampilkan tabel perbandingan harga sembako lintas minimarket dan supermarket dengan indikator panah naik, turun, dan stabil untuk belanja hemat."
+      }
+    ];
+
+    const video = document.getElementById('mainVideo');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const currTimeEl = document.getElementById('currTime');
+    const durTimeEl = document.getElementById('durTime');
+    const narrationText = document.getElementById('narrationText');
+    const chaptersContainer = document.getElementById('chaptersContainer');
+
+    // Build Chapter Cards
+    CHAPTERS.forEach((ch, idx) => {
+      const card = document.createElement('div');
+      card.className = 'chapter-card' + (idx === 0 ? ' active' : '');
+      card.dataset.idx = idx;
+      card.innerHTML = `
+        <div class="chapter-badge">${idx + 1}</div>
+        <div class="chapter-info">
+          <div class="chapter-time">${formatTime(ch.time)} - ${formatTime(ch.endTime)}</div>
+          <div class="chapter-name">${ch.title}</div>
+          <div class="chapter-desc">${ch.desc}</div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        video.currentTime = ch.time;
+        if (video.paused) video.play();
+        updateActiveChapter(idx);
+      });
+
+      chaptersContainer.appendChild(card);
+    });
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function updateActiveChapter(idx) {
+      document.querySelectorAll('.chapter-card').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+      narrationText.textContent = CHAPTERS[idx].narration;
+    }
+
+    // Play / Pause Toggle
+    btnPlayPause.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+
+    video.addEventListener('play', () => {
+      btnPlayPause.textContent = '⏸';
+    });
+
+    video.addEventListener('pause', () => {
+      btnPlayPause.textContent = '▶';
+    });
+
+    video.addEventListener('loadedmetadata', () => {
+      durTimeEl.textContent = formatTime(video.duration || 17.5);
+    });
+
+    video.addEventListener('timeupdate', () => {
+      const t = video.currentTime;
+      currTimeEl.textContent = formatTime(t);
+
+      // Find active chapter
+      const curIdx = CHAPTERS.findIndex(c => t >= c.time && t < c.endTime);
+      if (curIdx !== -1) {
+        updateActiveChapter(curIdx);
+      }
+    });
+
+    // Initial narration
+    narrationText.textContent = CHAPTERS[0].narration;
+  </script>
+</body>
+</html>

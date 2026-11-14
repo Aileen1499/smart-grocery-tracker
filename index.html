@@ -19,6 +19,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    // Redirect langsung jika pengunjung mengakses tautan video walkthrough agar tidak terhalang layar login
+    if (window.location.hash === '#video-walkthrough' || window.location.hash === '#video' || window.location.search.includes('video')) {
+      window.location.replace('video-walkthrough.html');
+    }
+  </script>
 </head>
 <body>
   <!-- Container Khusus Smartphone (Maksimal 430px, centered di desktop) -->
